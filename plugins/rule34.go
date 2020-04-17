@@ -42,7 +42,7 @@ func Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
 	}
 
 	// Retrieve an rule34 image based on tag input
-	sampleURL, err := requestData(req[1])
+	sampleURL, err := requestPron(req[1])
 	if err != nil {
 		log.Printf("failed to request data: %s", err)
 	}
@@ -55,7 +55,7 @@ func Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
 	log.Printf("%v fetched %s", msg.Member, sampleURL)
 }
 
-func requestData(tag string) (string, error) {
+func requestPron(tag string) (string, error) {
 
 	url := fmt.Sprintf("https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags=%s", tag)
 	res, err := http.Get(url)
@@ -75,6 +75,10 @@ func requestData(tag string) (string, error) {
 		return "", err
 	}
 
+	// If look up returns an empty slice display this message instead.
+	if len(v.Post) < 1 {
+		return "No results found :sob:", nil
+	}
 	rand.Seed(time.Now().UnixNano())
 	n := rand.Intn(len(v.Post) - 1)
 

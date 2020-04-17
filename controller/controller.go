@@ -30,13 +30,15 @@ func ReceiveMessage(s *dg.Session, msg *dg.MessageCreate) {
 	// To add a plugin, create a case statement for the plugin as shown below.
 	// If the plugin is new create a new `.go` file under the `plugins` directory.
 	switch req[0] {
+	case "--gif":
+		go plugs.Gif(req, s, msg)
 	case "--man":
 		go plugs.Manual(req, s, msg)
+	case "--meme":
+		go plugs.RequestMeme(req, s, msg)
 	case "--ping":
 		go plugs.Pong(s, msg)
 	case "--rule34":
 		go plugs.Rule34(req, s, msg)
-	case "--meme":
-		go plugs.RequestMeme(req, s, msg)
 	}
 }
