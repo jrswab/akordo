@@ -1,8 +1,10 @@
 package controller
 
 import (
-	"log"
+	"regexp"
+	"strings"
 
+	plugs "git.sr.ht/~jrswab/akordo/plugins"
 	dg "github.com/bwmarrin/discordgo"
 )
 
@@ -13,10 +15,23 @@ type Controller struct {
 
 // ReceiveMessage reads the message and returns the response based on the input.
 func ReceiveMessage(s *dg.Session, msg *dg.MessageCreate) {
-	if msg.Content == "--ping" {
-		_, err := s.ChannelMessageSend(msg.ChannelID, "pong")
-		if err != nil {
-			log.Fatalf("session.ChannelMessageSend failed: %s", err)
-		}
+	// Make sure the message matches the bot syntax
+	var re = regexp.MustCompile(`(?m)^--(\w|\s)+`)
+	match := re.MatchString(msg.Content)
+	if !match {
+		return
+	}
+
+	// Split the string to a slice to parse parameters
+	req := strings.Split(msg.Content, " ")
+
+	// Perform action based off each command
+	switch req[0] {
+	case "--ping":
+		go plugs.Pong(s, msg)
+	case "--rule34":
+		go plugs.Rule34(req, s, msg)
+	case "--meme":
+		go plugs.RequestMeme(req, s, msg)
 	}
 }
