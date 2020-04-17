@@ -26,7 +26,12 @@ func ReceiveMessage(s *dg.Session, msg *dg.MessageCreate) {
 	req := strings.Split(msg.Content, " ")
 
 	// Perform action based off each command
+	// To remove a plugin simply remove the case statement for that plugin
+	// To add a plugin, create a case statement for the plugin as shown below.
+	// If the plugin is new create a new `.go` file under the `plugins` directory.
 	switch req[0] {
+	case "--man":
+		go plugs.Manual(req, s, msg)
 	case "--ping":
 		go plugs.Pong(s, msg)
 	case "--rule34":

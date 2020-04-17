@@ -2,3 +2,10 @@
 A Discord chat bot written by the members of the Technonauts chat group.
 
 [Join the Technonauts!](https://discord.gg/A2uuCUr)
+
+## Using the Bot:
+1. [Setup your Discord application](https://discordapp.com/developers/applications/)
+3. Invite your bot to your server
+4. Download the source code `git pull git.sr.ht/~jrswab/akordo`
+5. Build the binary: `go build`
+6. Run the binary: `./akordo -t <your bot token here>`
