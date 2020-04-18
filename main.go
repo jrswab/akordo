@@ -20,12 +20,25 @@ func init() {
 }
 
 func main() {
+	// If token is not passed by -t check for and environment variable
+	if token == "" {
+		var found bool
+		token, found = os.LookupEnv("BOT_TOKEN")
+		if !found {
+			log.Fatalf("Please pass in your bot token with -t or set the \"BOT_TOKEN\" environment variable.")
+		}
+	}
+
 	sess, err := discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatalf("Session creation error: %s", err)
 	}
 
-	sess.AddHandler(controller.ReceiveMessage)
+	// Create a the custom controller to pass data to ReceiveMessage and the plugins
+	con := controller.NewController(sess)
+
+	// Watch for new messages
+	sess.AddHandler(con.ReceiveMessage)
 
 	if err = sess.Open(); err != nil {
 		log.Fatalf("Open session error: %s", err)

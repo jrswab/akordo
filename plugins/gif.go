@@ -21,7 +21,12 @@ type giphyData struct {
 
 // Gif makes sure the length of the slice is greater that 1
 // (ie; a tag has been passed with the request) and then return a random gif from Giphy.
-func Gif(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func (r *Record) Gif(req []string, s *dg.Session, msg *dg.MessageCreate) {
+	// Check the last time the user made this request
+	if tooSoon := r.checkLastAsk(s, msg); tooSoon {
+		return
+	}
+
 	// Check for proper formatting of message:
 	if len(req) < 2 {
 		_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--gif word`")
@@ -42,6 +47,7 @@ func Gif(req []string, s *dg.Session, msg *dg.MessageCreate) {
 		log.Printf("session.ChannelMessageSend failed: %s", err)
 		return
 	}
+	log.Printf("%s fetched gif: %s", msg.Member.User.Username, sampleURL)
 }
 
 func requestGif(tag string) (string, error) {

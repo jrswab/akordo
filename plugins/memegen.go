@@ -19,25 +19,37 @@ type memeGenJSON struct {
 // RequestMeme receives the users request for a meme with the given parameters.
 // If the resquest is malformed (ie, only one word after --meme) the function
 // terminates and returns a message to the sure on how to use the meme generator.
-func RequestMeme(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func (r *Record) RequestMeme(req []string, s *dg.Session, msg *dg.MessageCreate) {
 	if len(req) < 3 {
 		switch req[1] {
 		case "list":
 			listMsg0 := "To see all available memes head to https://memegen.link/api/templates/\n"
 			listMsg1 := "Use the name at the end of the URLs that are displayed."
-			listMsg := listMsg0 + listMsg1
-			_, err := s.ChannelMessageSend(msg.ChannelID, listMsg)
+			_, err := s.ChannelMessageSend(msg.ChannelID, (listMsg0 + listMsg1))
 			if err != nil {
 				log.Printf("session.ChannelMessageSend failed: %s", err)
 			}
 			return
 		default:
-			_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--meme name top_text bottom_text`")
+			_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--meme name top_text <bottom_text>`")
 			if err != nil {
 				log.Printf("session.ChannelMessageSend failed: %s", err)
 			}
 			return
 		}
+	}
+
+	if len(req) > 4 {
+		_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--meme name top_text <bottom_text>`")
+		if err != nil {
+			log.Printf("session.ChannelMessageSend failed: %s", err)
+		}
+		return
+	}
+
+	// Check the last time the user made this request
+	if tooSoon := r.checkLastAsk(s, msg); tooSoon {
+		return
 	}
 
 	// Retrieve the generated meme based on tag input
@@ -52,11 +64,19 @@ func RequestMeme(req []string, s *dg.Session, msg *dg.MessageCreate) {
 		log.Printf("session.ChannelMessageSend failed: %s", err)
 		return
 	}
-	log.Printf("%v generated meme: %s", msg.Member, URL)
+	log.Printf("%s generated meme: %s", msg.Member.User.Username, URL)
 }
 
 func generateMeme(req []string) (string, error) {
-	url := fmt.Sprintf("https://memegen.link/api/templates/%s/%s/%s", req[1], req[2], req[3])
+	url := fmt.Sprintf("https://memegen.link/api/templates/")
+	for idx, word := range req {
+		if idx == 0 {
+			continue
+		}
+
+		url = fmt.Sprintf("%s%s/", url, word)
+	}
+
 	res, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("failed to get URL: %s", err)

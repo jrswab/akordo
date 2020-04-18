@@ -10,11 +10,28 @@ import (
 
 // Controller holds the data needed for the bot to send/receive messages.
 type Controller struct {
-	Session *dg.Session
+	session *dg.Session
+
+	gifRecord  *plugs.Record
+	memeRecord *plugs.Record
+	pingRecord *plugs.Record
+	r34Record  *plugs.Record
+}
+
+// NewController creates a Controller
+func NewController(s *dg.Session) *Controller {
+	return &Controller{
+		session: s,
+
+		gifRecord:  plugs.NewRecorder(),
+		memeRecord: plugs.NewRecorder(),
+		pingRecord: plugs.NewRecorder(),
+		r34Record:  plugs.NewRecorder(),
+	}
 }
 
 // ReceiveMessage reads the message and returns the response based on the input.
-func ReceiveMessage(s *dg.Session, msg *dg.MessageCreate) {
+func (c *Controller) ReceiveMessage(s *dg.Session, msg *dg.MessageCreate) {
 	// Make sure the message matches the bot syntax
 	var re = regexp.MustCompile(`(?m)^--(\w|\s)+`)
 	match := re.MatchString(msg.Content)
@@ -31,14 +48,14 @@ func ReceiveMessage(s *dg.Session, msg *dg.MessageCreate) {
 	// If the plugin is new create a new `.go` file under the `plugins` directory.
 	switch req[0] {
 	case "--gif":
-		go plugs.Gif(req, s, msg)
+		go c.gifRecord.Gif(req, s, msg)
 	case "--man":
 		go plugs.Manual(req, s, msg)
 	case "--meme":
-		go plugs.RequestMeme(req, s, msg)
+		go c.memeRecord.RequestMeme(req, s, msg)
 	case "--ping":
-		go plugs.Pong(s, msg)
+		go c.pingRecord.Pong(s, msg)
 	case "--rule34":
-		go plugs.Rule34(req, s, msg)
+		go c.r34Record.Rule34(req, s, msg)
 	}
 }

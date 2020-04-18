@@ -21,7 +21,7 @@ type rule34XML struct {
 
 // Rule34 checks that the channel ID is marked as NSFW, makes sure the length of the slice
 // is greater that 1 (ie; a tag has been passed with the request) and then retrieves the data.
-func Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func (r *Record) Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
 	// make sure the channel is marked NSFW
 	dChan, err := s.Channel(msg.ChannelID)
 	if err != nil {
@@ -29,6 +29,11 @@ func Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
 	}
 
 	if !dChan.NSFW {
+		return
+	}
+
+	// Check the last time the user made this request
+	if tooSoon := r.checkLastAsk(s, msg); tooSoon {
 		return
 	}
 
@@ -52,7 +57,7 @@ func Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
 		log.Printf("session.ChannelMessageSend failed: %s", err)
 		return
 	}
-	log.Printf("%v fetched %s", msg.Member, sampleURL)
+	log.Printf("%s fetched rule34: %s", msg.Member.User.Username, sampleURL)
 }
 
 func requestPron(tag string) (string, error) {

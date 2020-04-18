@@ -7,10 +7,14 @@ import (
 )
 
 // Pong returns the string "Pong" when a user types "--Ping"
-func Pong(s *dg.Session, msg *dg.MessageCreate) {
+func (r *Record) Pong(s *dg.Session, msg *dg.MessageCreate) {
+	// Check the last time the user made this request
+	if tooSoon := r.checkLastAsk(s, msg); tooSoon {
+		return
+	}
 	_, err := s.ChannelMessageSend(msg.ChannelID, "pong")
 	if err != nil {
 		log.Fatalf("session.ChannelMessageSend failed: %s", err)
 	}
-	log.Printf("%v fetched pong", msg.Member)
+	log.Printf("%s fetched pong", msg.Member.User.Username)
 }
