@@ -16,5 +16,5 @@ func (r *Record) Pong(s *dg.Session, msg *dg.MessageCreate) {
 	if err != nil {
 		log.Fatalf("session.ChannelMessageSend failed: %s", err)
 	}
-	log.Printf("%s fetched pong", msg.Member.User.Username)
+	log.Printf("%s fetched pong", msg.Author.Username)
 }

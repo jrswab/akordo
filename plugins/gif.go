@@ -47,7 +47,7 @@ func (r *Record) Gif(req []string, s *dg.Session, msg *dg.MessageCreate) {
 		log.Printf("session.ChannelMessageSend failed: %s", err)
 		return
 	}
-	log.Printf("%s fetched gif: %s", msg.Member.User.Username, sampleURL)
+	log.Printf("%s fetched gif: %s", msg.Author.Username, sampleURL)
 }
 
 func requestGif(tag string) (string, error) {

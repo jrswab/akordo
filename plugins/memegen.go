@@ -64,7 +64,7 @@ func (r *Record) RequestMeme(req []string, s *dg.Session, msg *dg.MessageCreate)
 		log.Printf("session.ChannelMessageSend failed: %s", err)
 		return
 	}
-	log.Printf("%s generated meme: %s", msg.Member.User.Username, URL)
+	log.Printf("%s generated meme: %s", msg.Author.Username, URL)
 }
 
 func generateMeme(req []string) (string, error) {

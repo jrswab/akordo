@@ -57,7 +57,7 @@ func (r *Record) Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
 		log.Printf("session.ChannelMessageSend failed: %s", err)
 		return
 	}
-	log.Printf("%s fetched rule34: %s", msg.Member.User.Username, sampleURL)
+	log.Printf("%s fetched rule34: %s", msg.Author.Username, sampleURL)
 }
 
 func requestPron(tag string) (string, error) {
