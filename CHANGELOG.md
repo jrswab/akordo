@@ -5,16 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### v0.4.0
 ### Added
-- sending a random gif on user request `--gif <word>`
-- the option to pass the bot token as an environment variable.
-- plugins.go to hold general plugin functions.
-- cool-down to meme, pong, and rule34 commands
+- Unit tests
+- The bot prefix to be a constant in controller/controller.go
+
+### Changed
+- ReceiveMessage to CheckMessage and moved switch statement to its own method
+
+## v0.4.0
+### Added
+- Sending a random gif on user request `--gif <word>`
+- The option to pass the bot token as an environment variable.
+- Plugins.go to hold general plugin functions.
+- Cool-down to meme, pong, and rule34 commands
 
 ### Changed
 - main.go to create a struct to hold the data needed to check user request frequency.
-- logging to show the username of the requester
+- Logging to show the username of the requester
 
 ## Fixed
 - `invalid argument to Intn` when rule34 returns an empty list.

@@ -35,10 +35,10 @@ func main() {
 	}
 
 	// Create a the custom controller to pass data to ReceiveMessage and the plugins
-	con := controller.NewController(sess)
+	con := controller.NewSessionData(sess)
 
 	// Watch for new messages
-	sess.AddHandler(con.ReceiveMessage)
+	sess.AddHandler(con.CheckSyntax)
 
 	if err = sess.Open(); err != nil {
 		log.Fatalf("Open session error: %s", err)
