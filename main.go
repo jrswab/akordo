@@ -38,7 +38,7 @@ func main() {
 	con := controller.NewSessionData(sess)
 
 	// Watch for new messages
-	sess.AddHandler(con.CheckSyntax)
+	sess.AddHandler(con.NewMessage)
 
 	if err = sess.Open(); err != nil {
 		log.Fatalf("Open session error: %s", err)

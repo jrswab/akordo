@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -21,43 +20,35 @@ type rule34XML struct {
 
 // Rule34 checks that the channel ID is marked as NSFW, makes sure the length of the slice
 // is greater that 1 (ie; a tag has been passed with the request) and then retrieves the data.
-func (r *Record) Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func (r *Record) Rule34(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error) {
 	// make sure the channel is marked NSFW
 	dChan, err := s.Channel(msg.ChannelID)
 	if err != nil {
-		log.Printf("session.Channelfailed: %s", err)
+		return "", fmt.Errorf("session.Channelfailed: %s", err)
 	}
 
 	if !dChan.NSFW {
-		return
-	}
-
-	// Check the last time the user made this request
-	if tooSoon := r.checkLastAsk(s, msg); tooSoon {
-		return
+		return "", nil
 	}
 
 	// Check for proper formatting of message:
 	if len(req) < 2 {
-		_, err = s.ChannelMessageSend(msg.ChannelID, "Usage: `--rule34 tag`")
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
-		return
+		return fmt.Sprintf("Usage: `--rule34 tag`"), nil
+	}
+
+	// Check the last time the user made this request
+	alertUser, tooSoon := r.checkLastAsk(s, msg)
+	if tooSoon {
+		return alertUser, nil
 	}
 
 	// Retrieve an rule34 image based on tag input
 	sampleURL, err := requestPron(req[1])
 	if err != nil {
-		log.Printf("failed to request data: %s", err)
+		return "", fmt.Errorf("failed to request data: %s", err)
 	}
 
-	_, err = s.ChannelMessageSend(msg.ChannelID, sampleURL)
-	if err != nil {
-		log.Printf("session.ChannelMessageSend failed: %s", err)
-		return
-	}
-	log.Printf("%s fetched rule34: %s", msg.Author.Username, sampleURL)
+	return sampleURL, nil
 }
 
 func requestPron(tag string) (string, error) {

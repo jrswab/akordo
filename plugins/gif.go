@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -13,47 +12,69 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
+// GifRetriever is implemented by the Gif method and used for testing.
+type GifRetriever interface {
+	Gif(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error)
+}
+
 type giphyData struct {
 	Data []struct {
 		EmbedURL string `json:"embed_url"`
 	} `json:"data"`
 }
 
+// GifRequest contains the data to be passed when executing the Gif() method.
+type GifRequest struct {
+	Record  *Record
+	BaseURL string
+}
+
+// NewGifRequest creates GifRequest struct for calling the Gif method
+// URL is optional to pass in the case the bot maintainer wants to use a different
+// gif websites. If more than one URL is passed in the only first will be used.
+func NewGifRequest(url ...string) *GifRequest {
+	recorder := NewRecorder()
+	rq := &GifRequest{
+		Record:  recorder,
+		BaseURL: fmt.Sprintf("http://api.giphy.com/v1/gifs/search?rating=pg"),
+	}
+
+	if len(url) != 0 {
+		rq.BaseURL = url[0]
+	}
+
+	return rq
+}
+
 // Gif makes sure the length of the slice is greater that 1
 // (ie; a tag has been passed with the request) and then return a random gif from Giphy.
-func (r *Record) Gif(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func (g *GifRequest) Gif(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error) {
+	r := g.Record
 	// Check the last time the user made this request
-	if tooSoon := r.checkLastAsk(s, msg); tooSoon {
-		return
+	alertUser, tooSoon := r.checkLastAsk(s, msg)
+	if tooSoon {
+		return alertUser, nil
 	}
 
 	// Check for proper formatting of message:
 	if len(req) < 2 {
-		_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--gif word`")
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
-		return
+		return fmt.Sprintf("Usage: `<prefix>gif word`"), nil
 	}
+
+	// Create URL
+	giphyAPI := os.Getenv("GIPHY_KEY")
+	url := fmt.Sprintf("%s&api_key=%s&q=%s", g.BaseURL, giphyAPI, req[1])
 
 	// Retrieve an rule34 image based on tag input
-	sampleURL, err := requestGif(req[1])
+	sampleURL, err := requestGif(url)
 	if err != nil {
-		log.Printf("failed to request data: %s", err)
+		return "", fmt.Errorf("failed to request gif data: %s", err)
 	}
 
-	_, err = s.ChannelMessageSend(msg.ChannelID, sampleURL)
-	if err != nil {
-		log.Printf("session.ChannelMessageSend failed: %s", err)
-		return
-	}
-	log.Printf("%s fetched gif: %s", msg.Author.Username, sampleURL)
+	return sampleURL, nil
 }
 
-func requestGif(tag string) (string, error) {
-	giphyAPI := os.Getenv("GIPHY_KEY")
-
-	url := fmt.Sprintf("http://api.giphy.com/v1/gifs/search?api_key=%s&rating=pg&q=%s", giphyAPI, tag)
+func requestGif(url string) (string, error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return "", err

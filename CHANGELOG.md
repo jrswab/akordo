@@ -7,10 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Unit tests
-- The bot prefix to be a constant in controller/controller.go
+- Gif to manpages.go
+- A reply function to controller/controller.go to handle sending data back to the user.
 
 ### Changed
+- The bot prefix to be specified in the sessionData struct
 - ReceiveMessage to CheckMessage and moved switch statement to its own method
+- Command switch statement to receive a string and error
+- Command switch to send message upon success instead of each plugin.
+- Plugins to return data instead of executing their own message send
+
+### Deprecated
+- for soon-to-be removed features.
+
+### Removed
+- for now removed features.
+
+### Fixed
+- for any bug fixes.
+
+### Security
+- in case of vulnerabilities
 
 ## v0.4.0
 ### Added

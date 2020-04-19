@@ -2,14 +2,13 @@ package controller
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
 	plugs "git.sr.ht/~jrswab/akordo/plugins"
 	dg "github.com/bwmarrin/discordgo"
 )
-
-const prefix string = `~`
 
 // Controller is used for testing and is implemented by methods that controller how the user
 // message gets distributed to the plugins.
@@ -21,8 +20,9 @@ type Controller interface {
 // SessionData holds the data needed for the bot to send/receive messages.
 type SessionData struct {
 	session *dg.Session
+	prefix  string
 
-	gifRecord  *plugs.Record
+	gifRequest *plugs.GifRequest
 	memeRecord *plugs.Record
 	pingRecord *plugs.Record
 	r34Record  *plugs.Record
@@ -32,28 +32,33 @@ type SessionData struct {
 func NewSessionData(s *dg.Session) *SessionData {
 	return &SessionData{
 		session: s,
+		prefix:  `~`,
 
-		gifRecord:  plugs.NewRecorder(),
+		gifRequest: plugs.NewGifRequest(),
 		memeRecord: plugs.NewRecorder(),
 		pingRecord: plugs.NewRecorder(),
 		r34Record:  plugs.NewRecorder(),
 	}
 }
 
+// NewMessage waits for a ne message to be sent in a the Discord guild
+// This kicks off a Goroutine to free up the mutex set by discordgo `AddHandler` method.
+func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
+	go sd.checkSyntax(s, msg)
+}
+
 // CheckSyntax uses regexp from the standard library to check the message has the correct
 // prefix as defined by the `prefix` constant.
-func (sd *SessionData) CheckSyntax(s *dg.Session, msg *dg.MessageCreate) {
+func (sd *SessionData) checkSyntax(s *dg.Session, msg *dg.MessageCreate) {
 	// Make sure the message matches the bot syntax
-	regEx := fmt.Sprintf("(?m)^%s(\\w|\\s)+", prefix)
+	regEx := fmt.Sprintf("(?m)^%s(\\w|\\s)+", sd.prefix)
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
 		return
 	}
 
-	// Split the string to a slice to parse parameters
-	req := strings.Split(msg.Content, " ")
-	sd.ExecuteTask(req, s, msg)
+	sd.ExecuteTask(s, msg)
 }
 
 // ExecuteTask looks up the command found by the bot and kicks off a Goroutine do what
@@ -62,17 +67,60 @@ func (sd *SessionData) CheckSyntax(s *dg.Session, msg *dg.MessageCreate) {
 // To remove a plugin simply remove the case statement for that plugin
 // To add a plugin, create a case statement for the plugin as shown below.
 // If the plugin is new create a new `.go` file under the `plugins` directory.
-func (sd *SessionData) ExecuteTask(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
+	var res string
+	var err error
+	var isDM bool
+
+	// Split the string to a slice to parse parameters
+	req := strings.Split(msg.Content, " ")
+
 	switch req[0] {
-	case prefix + "gif":
-		go sd.gifRecord.Gif(req, s, msg)
-	case prefix + "man":
-		go plugs.Manual(req, s, msg)
-	case prefix + "meme":
-		go sd.memeRecord.RequestMeme(req, s, msg)
-	case prefix + "ping":
-		go sd.pingRecord.Pong(s, msg)
-	case prefix + "rule34":
-		go sd.r34Record.Rule34(req, s, msg)
+	case sd.prefix + "gif":
+		res, err = sd.gifRequest.Gif(req, s, msg)
+	case sd.prefix + "man":
+		res, err = plugs.Manual(req, s, msg)
+	case sd.prefix + "meme":
+		res, err = sd.memeRecord.RequestMeme(req, s, msg)
+	case sd.prefix + "ping":
+		res = sd.pingRecord.Pong(s, msg)
+	case sd.prefix + "rule34":
+		res, err = sd.r34Record.Rule34(req, s, msg)
+	}
+
+	sd.Reply(res, err, isDM, msg)
+}
+
+// Reply takes the executed data and replies to the user. This is either in the channel
+// where the command was sent or as a direct message to the user.
+func (sd *SessionData) Reply(res string, err error, isDM bool, msg *dg.MessageCreate) {
+	s := sd.session
+
+	if err != nil {
+		log.Printf("error executing task: %s", err)
+		return
+	}
+
+	if res == "" {
+		return
+	}
+
+	if isDM {
+		dm, err := s.UserChannelCreate(msg.Author.ID)
+		if err != nil {
+			log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
+				msg.Author.Username, err)
+			return
+		}
+
+		_, err = s.ChannelMessageSend(dm.ID, res)
+		if err != nil {
+			log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
+		}
+	}
+
+	_, err = s.ChannelMessageSend(msg.ChannelID, res)
+	if err != nil {
+		log.Printf("session.ChannelMessageSend failed: %s", err)
 	}
 }

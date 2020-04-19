@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -19,52 +18,35 @@ type memeGenJSON struct {
 // RequestMeme receives the users request for a meme with the given parameters.
 // If the resquest is malformed (ie, only one word after --meme) the function
 // terminates and returns a message to the sure on how to use the meme generator.
-func (r *Record) RequestMeme(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func (r *Record) RequestMeme(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error) {
 	if len(req) < 3 {
 		switch req[1] {
 		case "list":
 			listMsg0 := "To see all available memes head to https://memegen.link/api/templates/\n"
 			listMsg1 := "Use the name at the end of the URLs that are displayed."
-			_, err := s.ChannelMessageSend(msg.ChannelID, (listMsg0 + listMsg1))
-			if err != nil {
-				log.Printf("session.ChannelMessageSend failed: %s", err)
-			}
-			return
+			return (listMsg0 + listMsg1), nil
 		default:
-			_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--meme name top_text <bottom_text>`")
-			if err != nil {
-				log.Printf("session.ChannelMessageSend failed: %s", err)
-			}
-			return
+			return fmt.Sprintf("Usage: `--meme name top_text <bottom_text>`"), nil
 		}
 	}
 
 	if len(req) > 4 {
-		_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--meme name top_text <bottom_text>`")
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
-		return
+		return fmt.Sprintf("Usage: `--meme name top_text <bottom_text>`"), nil
 	}
 
 	// Check the last time the user made this request
-	if tooSoon := r.checkLastAsk(s, msg); tooSoon {
-		return
+	alertUser, tooSoon := r.checkLastAsk(s, msg)
+	if tooSoon {
+		return alertUser, nil
 	}
 
 	// Retrieve the generated meme based on tag input
 	URL, err := generateMeme(req)
 	if err != nil {
-		log.Printf("generateMeme failed: %s", err)
-		return
+		return "", fmt.Errorf("generateMeme failed: %s", err)
 	}
 
-	_, err = s.ChannelMessageSend(msg.ChannelID, URL)
-	if err != nil {
-		log.Printf("session.ChannelMessageSend failed: %s", err)
-		return
-	}
-	log.Printf("%s generated meme: %s", msg.Author.Username, URL)
+	return URL, nil
 }
 
 func generateMeme(req []string) (string, error) {

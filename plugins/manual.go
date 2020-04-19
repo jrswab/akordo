@@ -1,7 +1,7 @@
 package plugins
 
 import (
-	"log"
+	"fmt"
 
 	man "git.sr.ht/~jrswab/akordo/manuals"
 	dg "github.com/bwmarrin/discordgo"
@@ -10,59 +10,23 @@ import (
 // Manual is triggered when a user passes `--man <command name>`
 // This is to give the user a UNIX style man page of what the
 // command is able to do.
-func Manual(req []string, s *dg.Session, msg *dg.MessageCreate) {
+func Manual(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error) {
 	if len(req) < 2 {
-		_, err := s.ChannelMessageSend(msg.ChannelID, "Usage: `--man <command name>`")
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
-		return
+		helpMsg := fmt.Sprintf("Usage: `[prefix]man <command name>`")
+		return helpMsg, nil
 	}
 
 	switch req[1] {
+	case "gif":
+		return man.Gif, nil
 	case "man":
-		dm, err := s.UserChannelCreate(msg.Author.ID)
-		if err != nil {
-			log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
-				msg.Author.Username, err)
-			return
-		}
-		_, err = s.ChannelMessageSend(dm.ID, man.Man)
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
+		return man.Man, nil
 	case "meme":
-		dm, err := s.UserChannelCreate(msg.Author.ID)
-		if err != nil {
-			log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
-				msg.Author.Username, err)
-			return
-		}
-		_, err = s.ChannelMessageSend(dm.ID, man.Meme)
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
+		return man.Meme, nil
 	case "ping":
-		dm, err := s.UserChannelCreate(msg.Author.ID)
-		if err != nil {
-			log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
-				msg.Author.Username, err)
-			return
-		}
-		_, err = s.ChannelMessageSend(dm.ID, man.Ping)
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
+		return man.Ping, nil
 	case "rule34":
-		dm, err := s.UserChannelCreate(msg.Author.ID)
-		if err != nil {
-			log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
-				msg.Author.Username, err)
-			return
-		}
-		_, err = s.ChannelMessageSend(dm.ID, man.Rule34)
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
-		}
+		return man.Rule34, nil
 	}
+	return "", nil
 }

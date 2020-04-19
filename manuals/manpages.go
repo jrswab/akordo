@@ -1,6 +1,25 @@
 package manuals
 
-// Man is the man page for `--man man`
+// Gif is the man page for `<prefix>man gif`
+const Gif string = `
+Gif(1) User Commands Gif(1)
+
+NAME
+       gif - Selects a random gif to display based off the user's input.
+
+SYNOPSIS
+       <prefix>gif [tag]
+
+DESCRIPTION
+       Gif returns to the requester a single giy based off the input tag
+       provided. The gif is sent to the same channel that the user executed
+       the command within.
+
+EXAMPLE
+       <prefix>gif laugh
+`
+
+// Man is the man page for `<prefix>man man`
 const Man string = `
 Man(1) User Commands Man(1)
 
@@ -8,18 +27,18 @@ NAME
        man - Used to get information about a bot command.
 
 SYNOPSIS
-       --man [command]
+       <prefix>man [command]
 
 DESCRIPTION
-       Man returns to the requester the informait about a command and how
+       Man returns to the requester the information about a command and how
        that command is to be used. The message is sent as a DM to the user
        requesting the information.
 
 EXAMPLE
-       --man pong
+       <prefix>man pong
 `
 
-// Meme is the man page for `--man man`
+// Meme is the man page for `<prefix>man man`
 const Meme string = `
 MEME(1) User Commands MEME(1)
 
@@ -27,7 +46,7 @@ NAME
        meme - Create a meme on the fly.
 
 SYNOPSIS
-       --meme [meme name] [top text] [bottom text]
+       <prefix>meme [meme name] [top text] [bottom text]
 
 DESCRIPTION
        Meme sends back a new meme created with the text the user provides
@@ -35,23 +54,23 @@ DESCRIPTION
        as this_is_top or this-is-top.
 
 COMMAND SYNOPSIS
-       This is just a brief synopsis of --meme commands to serve as a
+       This is just a brief synopsis of <prefix>meme commands to serve as a
        reminder to those who already know the memegen.link api; for more
        information please refer to https://memegen.link/api/
 
-       --meme list
+       <prefix>meme list
               Returns the template url on memegen.link with all available images.
        
-       --meme spongebob why_are_you here
+       <prefix>meme spongebob why_are_you here
               Returns the url to the newly created mocking spongebob meme with
               the top text "why are you" and the bottom text "here".
        
-       --meme spongebob why_are_you
+       <prefix>meme spongebob why_are_you
               Returns the url to the newly created mocking spongebob meme with
               the top text "why are you" and no bottom text.
 `
 
-// Ping is the man page for `--man rule34`
+// Ping is the man page for `<prefix>man rule34`
 const Ping string = `
 PING(1) User Commands PING(1)
 
@@ -59,16 +78,16 @@ NAME
        ping - Used to check the bots responce.
 
 SYNOPSIS
-       --ping
+       <prefix>ping
 
 DESCRIPTION
        Ping will return "pong" when the bot is online.
 
 EXAMPLE
-        --ping
+        <prefix>ping
 `
 
-// Rule34 is the man page for `--man rule34`
+// Rule34 is the man page for `<prefix>man rule34`
 const Rule34 string = `
 RULE34(1) User Commands RULE34(1)
 
@@ -76,12 +95,12 @@ NAME
        rule34 - NSFW command to grab a random image from rule34.xxx
 
 SYNOPSIS
-       --rule34 [tag]
+       <prefix>rule34 [tag]
 
 DESCRIPTION
        Rule34 states that "if it exists there is porn for it." This command
        will only trigger in a channel marked as NFSW.
 
 EXAMPLE
-        --rule34 boobs
+        <prefix>rule34 boobs
 `
