@@ -19,7 +19,7 @@ func NewRecorder() *Record {
 	return &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)}
 }
 
-func (r *Record) checkLastAsk(s *dg.Session, msg *dg.MessageCreate) (string, bool) {
+func (r *Record) checkLastAsk(msg *dg.MessageCreate) (string, bool) {
 	last, found := r.LastReq[msg.Author.ID]
 	if found && time.Since(last) < (r.MinWaitTime) {
 		userAlert := fmt.Sprintf("%s please wait 120 seconds before requesting the same command.",

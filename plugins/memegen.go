@@ -35,7 +35,7 @@ func (r *Record) RequestMeme(req []string, s *dg.Session, msg *dg.MessageCreate)
 	}
 
 	// Check the last time the user made this request
-	alertUser, tooSoon := r.checkLastAsk(s, msg)
+	alertUser, tooSoon := r.checkLastAsk(msg)
 	if tooSoon {
 		return alertUser, nil
 	}

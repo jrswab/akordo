@@ -12,11 +12,6 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-// GifRetriever is implemented by the Gif method and used for testing.
-type GifRetriever interface {
-	Gif(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error)
-}
-
 type giphyData struct {
 	Data []struct {
 		EmbedURL string `json:"embed_url"`
@@ -51,7 +46,7 @@ func NewGifRequest(url ...string) *GifRequest {
 func (g *GifRequest) Gif(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error) {
 	r := g.Record
 	// Check the last time the user made this request
-	alertUser, tooSoon := r.checkLastAsk(s, msg)
+	alertUser, tooSoon := r.checkLastAsk(msg)
 	if tooSoon {
 		return alertUser, nil
 	}
