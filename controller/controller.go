@@ -79,7 +79,7 @@ func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
 	case sd.prefix + "gif":
 		res, err = sd.gifRequest.Gif(req, s, msg)
 	case sd.prefix + "man":
-		res, err = plugs.Manual(req, s, msg)
+		res = plugs.Manual(req, s, msg)
 	case sd.prefix + "meme":
 		res, err = sd.memeRequest.RequestMeme(req, s, msg)
 	case sd.prefix + "ping":
