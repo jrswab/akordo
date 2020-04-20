@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Unit tests
 - Gif to manpages.go
+- Execute function to controller/controller.go to call the correct plugin.
 - A reply function to controller/controller.go to handle sending data back to the user.
 
 ### Changed
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command switch statement to receive a string and error
 - Command switch to send message upon success instead of each plugin.
 - Plugins to return data instead of executing their own message send
+- `Rule34` takes an AkSession (interface) instead of `*dg.Session`
 
 ### Deprecated
 - for soon-to-be removed features.
