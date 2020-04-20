@@ -83,7 +83,7 @@ func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
 	case sd.prefix + "meme":
 		res, err = sd.memeRequest.RequestMeme(req, s, msg)
 	case sd.prefix + "ping":
-		res = sd.pingRecord.Pong(s, msg)
+		res = sd.pingRecord.Pong(msg)
 	case sd.prefix + "rule34":
 		res, err = sd.r34Request.Rule34(req, s, msg)
 	}
