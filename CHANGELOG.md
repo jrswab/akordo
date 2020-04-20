@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## v0.5.0
 ### Added
 - Unit tests
 - Gif to manpages.go
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command switch to send message upon success instead of each plugin.
 - Plugins to return data instead of executing their own message send
 - `Rule34` takes an AkSession (interface) instead of `*dg.Session`
+- The manual method to return one value instead of two.
 
 ### Deprecated
 - for soon-to-be removed features.
