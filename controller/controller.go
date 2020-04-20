@@ -25,7 +25,7 @@ type SessionData struct {
 	gifRequest *plugs.GifRequest
 	memeRecord *plugs.Record
 	pingRecord *plugs.Record
-	r34Record  *plugs.Record
+	r34Request *plugs.Rule34Request
 }
 
 // NewSessionData creates a SessionData
@@ -37,7 +37,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 		gifRequest: plugs.NewGifRequest(),
 		memeRecord: plugs.NewRecorder(),
 		pingRecord: plugs.NewRecorder(),
-		r34Record:  plugs.NewRecorder(),
+		r34Request: plugs.NewRule34Request(),
 	}
 }
 
@@ -85,7 +85,7 @@ func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
 	case sd.prefix + "ping":
 		res = sd.pingRecord.Pong(s, msg)
 	case sd.prefix + "rule34":
-		res, err = sd.r34Record.Rule34(req, s, msg)
+		res, err = sd.r34Request.Rule34(req, s, msg)
 	}
 
 	sd.Reply(res, err, isDM, msg)
