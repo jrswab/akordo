@@ -10,23 +10,23 @@ import (
 // Manual is triggered when a user passes `--man <command name>`
 // This is to give the user a UNIX style man page of what the
 // command is able to do.
-func Manual(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error) {
+func Manual(req []string, s *dg.Session, msg *dg.MessageCreate) string {
 	if len(req) < 2 {
-		helpMsg := fmt.Sprintf("Usage: `[prefix]man <command name>`")
-		return helpMsg, nil
+		helpMsg := fmt.Sprintf("Usage: `<prefix>man command`")
+		return helpMsg
 	}
 
 	switch req[1] {
 	case "gif":
-		return man.Gif, nil
+		return man.Gif
 	case "man":
-		return man.Man, nil
+		return man.Man
 	case "meme":
-		return man.Meme, nil
+		return man.Meme
 	case "ping":
-		return man.Ping, nil
+		return man.Ping
 	case "rule34":
-		return man.Rule34, nil
+		return man.Rule34
 	}
-	return "", nil
+	return ""
 }
