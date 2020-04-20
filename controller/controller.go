@@ -79,6 +79,7 @@ func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
 	case sd.prefix + "gif":
 		res, err = sd.gifRequest.Gif(req, s, msg)
 	case sd.prefix + "man":
+		isDM = true
 		res = plugs.Manual(req, s, msg)
 	case sd.prefix + "meme":
 		res, err = sd.memeRequest.RequestMeme(req, s, msg)
@@ -117,6 +118,7 @@ func (sd *SessionData) Reply(res string, err error, isDM bool, msg *dg.MessageCr
 		if err != nil {
 			log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
 		}
+		return
 	}
 
 	_, err = s.ChannelMessageSend(msg.ChannelID, res)

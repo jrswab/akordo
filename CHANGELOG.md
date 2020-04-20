@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- `man` to send as a direct message.
+
+### Security
+
 ## v0.5.0
 ### Added
 - Unit tests
@@ -21,18 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugins to return data instead of executing their own message send
 - `Rule34` takes an AkSession (interface) instead of `*dg.Session`
 - The manual method to return one value instead of two.
-
-### Deprecated
-- for soon-to-be removed features.
-
-### Removed
-- for now removed features.
-
-### Fixed
-- for any bug fixes.
-
-### Security
-- in case of vulnerabilities
 
 ## v0.4.0
 ### Added
