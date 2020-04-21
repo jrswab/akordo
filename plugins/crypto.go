@@ -1,10 +1,13 @@
 package plugins
 
 import (
+	"crypto/md5"
+	"encoding/base32"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -16,16 +19,17 @@ import (
 type Crypto struct {
 	words        []byte
 	encoded      string
-	lastEncoding string
+	lastEncoding int
 	inPlay       bool
-	roundStart   time.Time
-	roundEnd     time.Time
-	wasDecoded   bool
+	//roundStart   time.Time
+	roundEnd   time.Time
+	wasDecoded bool
+	waitTime   time.Duration
 }
 
 // NewCrypto returns a new struct of type crypto
 func NewCrypto() *Crypto {
-	return &Crypto{}
+	return &Crypto{waitTime: 2}
 }
 
 // Game launches a new crypto game or executes the check function.
@@ -33,16 +37,29 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 	if len(req) < 2 {
 		return fmt.Sprintf("Usage: `<prefix>crypto init` to start a game"), nil
 	}
+
 	if req[1] == "init" {
-		if !c.inPlay {
-			c.init()
+		gameTimeout := c.roundEnd.Add(c.waitTime * time.Minute).Unix()
+		initTime := time.Now().Unix()
+
+		if c.inPlay {
+			return fmt.Sprintf("Mining in progress...\nCurrent encoding:\n%s", c.encoded), nil
 		}
-		return fmt.Sprintf("Game in progress. Current encoding:\n%s", c.encoded), nil
+
+		if gameTimeout >= initTime {
+			return fmt.Sprintf("Please wait %d minutes to opening a new mine.", c.waitTime), nil
+		}
+
+		// Start a new crypto game
+		err := c.init()
+		if err != nil {
+			return "", fmt.Errorf("cryto game error: %s", err)
+		}
+		return fmt.Sprintf("A new mine has opened! \n%s", c.encoded), nil
 	}
 
 	var userGuess string
 	for idx, word := range req {
-		log.Printf("%d: %s", idx, word)
 		if idx == 1 {
 			userGuess = fmt.Sprintf("%s", word)
 		}
@@ -60,7 +77,8 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 
 // Init kicks off the crypto game
 func (c *Crypto) init() error {
-	if err := c.callPaswdAPI(); err != nil {
+	url := fmt.Sprintf("https://makemeapassword.ligos.net/api/v1/passphrase/plain")
+	if err := c.callPaswdAPI(url); err != nil {
 		return err
 	}
 
@@ -68,8 +86,7 @@ func (c *Crypto) init() error {
 	return nil
 }
 
-func (c *Crypto) callPaswdAPI() error {
-	url := fmt.Sprintf("https://makemeapassword.ligos.net/api/v1/passphrase/plain")
+func (c *Crypto) callPaswdAPI(url string) error {
 	res, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("crypto game failed to get data from provided url: %s", err)
@@ -88,10 +105,35 @@ func (c *Crypto) callPaswdAPI() error {
 }
 
 func (c *Crypto) encode() {
-	encodedStr := hex.EncodeToString([]byte(c.words))
-	c.encoded = encodedStr
+	var n int
+	for c.lastEncoding < 10 {
+		rand.Seed(time.Now().UnixNano())
+		n = rand.Intn(4)
+		if n != c.lastEncoding {
+			break
+		}
+	}
 
-	c.roundStart = time.Now()
+	switch n {
+	case 0:
+		c.encoded = hex.EncodeToString([]byte(c.words))
+		c.lastEncoding = 0
+	case 1:
+		c.encoded = base32.StdEncoding.EncodeToString([]byte(c.words))
+		c.lastEncoding = 1
+	case 2:
+		c.encoded = base64.StdEncoding.EncodeToString([]byte(c.words))
+		c.lastEncoding = 2
+	case 3:
+		c.encoded = ""
+		for _, bits := range []byte(c.words) {
+			c.encoded = fmt.Sprintf("%s %d", c.encoded, bits)
+		}
+		c.lastEncoding = 3
+	case 4:
+		c.encoded = fmt.Sprintf("%x", md5.Sum([]byte(c.words)))
+		c.lastEncoding = 4
+	}
 }
 
 func (c *Crypto) checkGuess(guess string) bool {
