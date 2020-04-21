@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"git.sr.ht/~jrswab/akordo/plugins"
 	plugs "git.sr.ht/~jrswab/akordo/plugins"
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -17,11 +18,12 @@ type Controller interface {
 	ExecuteTask(req []string, s *dg.Session, msg *dg.MessageCreate)
 }
 
-// SessionData holds the data needed for the bot to send/receive messages.
+// SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
 	session *dg.Session
 	prefix  string
 
+	crypto      *plugins.Crypto
 	gifRequest  *plugs.GifRequest
 	memeRequest *plugs.MemeRequest
 	pingRecord  *plugs.Record
@@ -34,6 +36,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 		session: s,
 		prefix:  `~`,
 
+		crypto:      plugs.NewCrypto(),
 		gifRequest:  plugs.NewGifRequest(),
 		memeRequest: plugs.NewMemeRequest(),
 		pingRecord:  plugs.NewRecorder(),
@@ -76,6 +79,8 @@ func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
 	req := strings.Split(msg.Content, " ")
 
 	switch req[0] {
+	case sd.prefix + "crypto":
+		res, err = sd.crypto.Game(req, msg)
 	case sd.prefix + "gif":
 		res, err = sd.gifRequest.Gif(req, s, msg)
 	case sd.prefix + "man":
