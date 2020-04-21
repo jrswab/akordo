@@ -78,7 +78,7 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 // Init kicks off the crypto game
 func (c *Crypto) init() error {
 	url := fmt.Sprintf("https://makemeapassword.ligos.net/api/v1/passphrase/plain")
-	if err := c.callPaswdAPI(url); err != nil {
+	if err := c.callPasswdAPI(url); err != nil {
 		return err
 	}
 
@@ -86,7 +86,7 @@ func (c *Crypto) init() error {
 	return nil
 }
 
-func (c *Crypto) callPaswdAPI(url string) error {
+func (c *Crypto) callPasswdAPI(url string) error {
 	res, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("crypto game failed to get data from provided url: %s", err)
