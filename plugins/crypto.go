@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -58,37 +59,39 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 }
 
 // Init kicks off the crypto game
-func (c *Crypto) init() (string, error) {
-	words, err := c.callPaswdAPI()
-	if err != nil {
-		return "", err
+func (c *Crypto) init() error {
+	if err := c.callPaswdAPI(); err != nil {
+		return err
 	}
 
-	return c.encode(words), err
+	c.encode()
+	return nil
 }
 
-func (c *Crypto) callPaswdAPI() ([]byte, error) {
+func (c *Crypto) callPaswdAPI() error {
 	url := fmt.Sprintf("https://makemeapassword.ligos.net/api/v1/passphrase/plain")
 	res, err := http.Get(url)
 	if err != nil {
-		return []byte(""), fmt.Errorf("crypto game failed to get data from provided url: %s", err)
+		return fmt.Errorf("crypto game failed to get data from provided url: %s", err)
 	}
 
-	secret, err := ioutil.ReadAll(res.Body)
+	words, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return []byte(""), fmt.Errorf("crypto game failed to read res.Body from LoC: %s", err)
+		return fmt.Errorf("crypto game failed to read res.Body from LoC: %s", err)
 	}
 
-	return secret, nil
+	// Remove new lines form received data
+	c.words = []byte(strings.Trim(string(words), "\r\n"))
+
+	return nil
 }
 
-func (c *Crypto) encode(src []byte) string {
-	encodedStr := hex.EncodeToString(src)
+func (c *Crypto) encode() {
+	encodedStr := hex.EncodeToString([]byte(c.words))
 	c.encoded = encodedStr
 
 	c.roundStart = time.Now()
-	return c.encoded
 }
 
 func (c *Crypto) checkGuess(guess string) bool {

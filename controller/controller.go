@@ -34,7 +34,7 @@ type SessionData struct {
 func NewSessionData(s *dg.Session) *SessionData {
 	return &SessionData{
 		session: s,
-		prefix:  `~`,
+		prefix:  `=`,
 
 		crypto:      plugs.NewCrypto(),
 		gifRequest:  plugs.NewGifRequest(),
