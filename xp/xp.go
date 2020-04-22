@@ -18,8 +18,7 @@ const gamePoints float64 = 10
 type Exp interface {
 	LoadXP()
 	ManipulateXP(action string, msg *dg.MessageCreate)
-	AutoSaveXP(mutex *sync.Mutex)
-	SetXpMsg(msg *dg.MessageCreate)
+	AutoSaveXP()
 }
 
 type xpSystem struct {
@@ -63,7 +62,6 @@ func (x *xpSystem) LoadXP() {
 
 func (x *xpSystem) ManipulateXP(action string, msg *dg.MessageCreate) {
 	x.mutex.Lock()
-	defer x.mutex.Unlock()
 
 	switch action {
 	case "addMessagePoints":
@@ -74,6 +72,7 @@ func (x *xpSystem) ManipulateXP(action string, msg *dg.MessageCreate) {
 		x.saveXP()
 	}
 
+	x.mutex.Unlock()
 }
 
 // AwardXP stores the earned experience into the DataStore struct.
@@ -112,7 +111,7 @@ func (x *xpSystem) writeToXpMap(user string, award, points float64) {
 	x.data.Users[user] = float64(award) * points
 }
 
-func (x *xpSystem) AutoSaveXP(mutex *sync.Mutex) {
+func (x *xpSystem) AutoSaveXP() {
 	for true {
 		select {
 		case <-time.After(5 * time.Minute):
@@ -123,10 +122,6 @@ func (x *xpSystem) AutoSaveXP(mutex *sync.Mutex) {
 
 // SaveXP saves the current struct data to a json file
 func (x *xpSystem) saveXP() {
-	// Lock the map to avoid race conditions
-	x.mutex.Lock()
-	defer x.mutex.Unlock()
-
 	json, err := json.MarshalIndent(x, "", "  ")
 	if err != nil {
 		log.Fatal(err)

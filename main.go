@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// start the Goroutine to automatically save earned XP
-	go sd.UserXP.AutoSaveXP(sd.Mutex)
+	go sd.UserXP.AutoSaveXP()
 
 	// Watch for new messages
 	sess.AddHandler(sd.NewMessage)
