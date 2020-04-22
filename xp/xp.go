@@ -12,7 +12,7 @@ import (
 )
 
 const messagePoints float64 = 0.01
-const gamePoints float64 = 10
+const GamePoints float64 = 10
 
 // Exp is the interface for interacting with the xp methods
 type Exp interface {

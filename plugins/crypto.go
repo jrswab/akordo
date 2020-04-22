@@ -72,7 +72,8 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 
 	if isCorrect := c.checkGuess(userGuess); isCorrect {
 		c.XP.ManipulateXP("addGamePoints", msg)
-		return fmt.Sprintf("%s won this round! Will you be next?", msg.Author.Username), nil
+		return fmt.Sprintf("%s won this round and found %f XP!",
+			msg.Author.Username, xp.GamePoints), nil
 	}
 
 	return fmt.Sprintf("%s sorry, that is incorrect :smirk:", msg.Author.Username), nil
