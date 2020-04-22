@@ -12,6 +12,9 @@ import (
 )
 
 const messagePoints float64 = 0.01
+
+// GamePoints is exported to be used when games need to tell the winner how many
+// points they have received.
 const GamePoints float64 = 10
 
 // Exp is the interface for interacting with the xp methods
@@ -21,6 +24,7 @@ type Exp interface {
 	AutoSaveXP()
 }
 
+// System holds all data needed to execute the functionality.
 type System struct {
 	data   *xpData
 	mutex  *sync.Mutex
@@ -55,6 +59,8 @@ func (x *System) LoadXP() {
 	}
 }
 
+// ManipulateXP is used by any part of the program that needs to read or write
+// data after startup.
 func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	x.mutex.Lock()
 
@@ -94,7 +100,7 @@ func (x *System) gameReward(msg *dg.MessageCreate) {
 		return
 	}
 
-	x.writeToXpMap(user, award, gamePoints)
+	x.writeToXpMap(user, award, GamePoints)
 }
 
 func (x *System) writeToXpMap(user string, award, points float64) {
@@ -106,6 +112,8 @@ func (x *System) writeToXpMap(user string, award, points float64) {
 	x.data.Users[user] = float64(award) * points
 }
 
+// AutoSaveXP is launched by main.go before accepting new messages.
+// Default time is coded to 5 minutes.
 func (x *System) AutoSaveXP() {
 	for true {
 		select {
