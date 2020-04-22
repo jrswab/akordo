@@ -36,11 +36,10 @@ type SessionData struct {
 
 // NewSessionData creates a SessionData
 func NewSessionData(s *dg.Session) *SessionData {
-	return &SessionData{
+	sd := &SessionData{
 		session: s,
 		Mutex:   &sync.Mutex{},
 		prefix:  `=`,
-		UserXP:  xp.NewXpStore(),
 
 		crypto:      plugs.NewCrypto(),
 		gifRequest:  plugs.NewGifRequest(),
@@ -48,11 +47,14 @@ func NewSessionData(s *dg.Session) *SessionData {
 		pingRecord:  plugs.NewRecorder(),
 		r34Request:  plugs.NewRule34Request(),
 	}
+	sd.UserXP = xp.NewXpStore(sd.Mutex)
+	return sd
 }
 
 // NewMessage waits for a ne message to be sent in a the Discord guild
 // This kicks off a Goroutine to free up the mutex set by discordgo `AddHandler` method.
 func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
+	sd.UserXP.SetXpMsg(msg)
 	go sd.checkSyntax(msg)
 }
 
@@ -64,7 +66,7 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
-		sd.UserXP.AwardActivity(sd.Mutex, msg)
+		sd.UserXP.ManipulateXP("addMessagePoints")
 		return
 	}
 

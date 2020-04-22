@@ -59,7 +59,7 @@ func main() {
 	<-sc
 
 	// Save data
-	sd.UserXP.SaveXP(sd.Mutex)
+	sd.UserXP.ManipulateXP("save")
 
 	// Close the session
 	if err := sess.Close(); err != nil {
