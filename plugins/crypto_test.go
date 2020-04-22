@@ -3,11 +3,9 @@ package plugins
 import (
 	"fmt"
 	"reflect"
-	"sync"
 	"testing"
 	"time"
 
-	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 )
 
@@ -68,7 +66,6 @@ func TestCrypto_Game(t *testing.T) {
 		{
 			name: "correct guess",
 			fields: &Crypto{
-				XP:     xp.NewXpStore(&sync.Mutex{}),
 				inPlay: true,
 				words:  []byte("this is a test"),
 			},
@@ -76,7 +73,7 @@ func TestCrypto_Game(t *testing.T) {
 				req: []string{"=test", "this", "is", "a", "test"},
 				msg: &dg.MessageCreate{&dg.Message{Author: &dg.User{Username: "User1"}}},
 			},
-			want:    "User1 won this round! Will you be next?",
+			want:    "User1 won this round!",
 			wantErr: false,
 		},
 		{

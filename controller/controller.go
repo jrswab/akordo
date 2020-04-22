@@ -88,7 +88,6 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 
 	switch req[0] {
 	case sd.prefix + "crypto":
-		sd.crypto.XP = sd.UserXP
 		res, err = sd.crypto.Game(req, msg)
 	case sd.prefix + "gif":
 		res, err = sd.gifRequest.Gif(req, sd.session, msg)
