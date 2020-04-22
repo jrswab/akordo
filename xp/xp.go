@@ -53,7 +53,7 @@ func (x *System) LoadXP() {
 		log.Fatal(err)
 	}
 
-	err = json.Unmarshal(savedXp, x)
+	err = json.Unmarshal(savedXp, x.data)
 	if err != nil {
 		log.Fatal(err)
 	}
