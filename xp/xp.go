@@ -21,9 +21,8 @@ type Exp interface {
 	AutoSaveXP()
 }
 
-type xpSystem struct {
+type System struct {
 	data   *xpData
-	msg    *dg.MessageCreate
 	mutex  *sync.Mutex
 	User   string
 	Points float64
@@ -37,18 +36,14 @@ type xpData struct {
 
 // NewXpStore creates the experience data storage map for the session
 func NewXpStore(mtx *sync.Mutex) Exp {
-	return &xpSystem{
+	return &System{
 		data:  &xpData{Users: make(map[string]float64)},
 		mutex: mtx,
 	}
 }
 
-func (x *xpSystem) SetXpMsg(msg *dg.MessageCreate) {
-	x.msg = msg
-}
-
 // LoadXP loads the saved xp data from the json file
-func (x *xpSystem) LoadXP() {
+func (x *System) LoadXP() {
 	savedXp, err := ioutil.ReadFile("xp.json")
 	if err != nil {
 		log.Fatal(err)
@@ -60,7 +55,7 @@ func (x *xpSystem) LoadXP() {
 	}
 }
 
-func (x *xpSystem) ManipulateXP(action string, msg *dg.MessageCreate) {
+func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	x.mutex.Lock()
 
 	switch action {
@@ -76,7 +71,7 @@ func (x *xpSystem) ManipulateXP(action string, msg *dg.MessageCreate) {
 }
 
 // AwardXP stores the earned experience into the DataStore struct.
-func (x *xpSystem) awardActivity(msg *dg.MessageCreate) {
+func (x *System) awardActivity(msg *dg.MessageCreate) {
 	award := len(msg.Content)
 	user := msg.Author.ID
 
@@ -89,7 +84,7 @@ func (x *xpSystem) awardActivity(msg *dg.MessageCreate) {
 	x.writeToXpMap(user, float64(award), messagePoints)
 }
 
-func (x *xpSystem) gameReward(msg *dg.MessageCreate) {
+func (x *System) gameReward(msg *dg.MessageCreate) {
 	award := 1.00 // No reward bonus
 	user := msg.Author.ID
 
@@ -102,7 +97,7 @@ func (x *xpSystem) gameReward(msg *dg.MessageCreate) {
 	x.writeToXpMap(user, award, gamePoints)
 }
 
-func (x *xpSystem) writeToXpMap(user string, award, points float64) {
+func (x *System) writeToXpMap(user string, award, points float64) {
 	if xp, ok := x.data.Users[user]; ok {
 		x.data.Users[user] = xp + (award * points)
 		return
@@ -111,7 +106,7 @@ func (x *xpSystem) writeToXpMap(user string, award, points float64) {
 	x.data.Users[user] = float64(award) * points
 }
 
-func (x *xpSystem) AutoSaveXP() {
+func (x *System) AutoSaveXP() {
 	for true {
 		select {
 		case <-time.After(5 * time.Minute):
@@ -121,8 +116,8 @@ func (x *xpSystem) AutoSaveXP() {
 }
 
 // SaveXP saves the current struct data to a json file
-func (x *xpSystem) saveXP() {
-	json, err := json.MarshalIndent(x, "", "  ")
+func (x *System) saveXP() {
+	json, err := json.MarshalIndent(x.data, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
