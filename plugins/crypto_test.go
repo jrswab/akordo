@@ -3,9 +3,11 @@ package plugins
 import (
 	"fmt"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
+	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 )
 
@@ -16,7 +18,7 @@ func TestNewCrypto(t *testing.T) {
 	}{
 		{
 			name: "Create blank struct",
-			want: &Crypto{waitTime: 10},
+			want: &Crypto{waitTime: 2},
 		},
 	}
 	for _, tt := range tests {
@@ -60,12 +62,13 @@ func TestCrypto_Game(t *testing.T) {
 				req: []string{"=test", "init"},
 				msg: &dg.MessageCreate{},
 			},
-			want:    fmt.Sprintf("Mining in progress. Current encoding:\n1111"),
+			want:    fmt.Sprintf("Mining in progress...\nCurrent encoding:\n1111"),
 			wantErr: false,
 		},
 		{
 			name: "correct guess",
 			fields: &Crypto{
+				XP:     xp.NewXpStore(&sync.Mutex{}),
 				inPlay: true,
 				words:  []byte("this is a test"),
 			},
@@ -101,7 +104,7 @@ func TestCrypto_Game(t *testing.T) {
 				req: []string{"=test", "init"},
 				msg: &dg.MessageCreate{&dg.Message{Author: &dg.User{Username: "User1"}}},
 			},
-			want:    fmt.Sprintf("Please wait 10 minutes to start a new dig."),
+			want:    fmt.Sprintf("Please wait 10 minutes to open a new mine."),
 			wantErr: false,
 		},
 	}

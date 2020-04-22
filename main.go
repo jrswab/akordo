@@ -59,7 +59,7 @@ func main() {
 	<-sc
 
 	// Save data
-	sd.UserXP.ManipulateXP("save")
+	sd.UserXP.ManipulateXP("save", &discordgo.MessageCreate{})
 
 	// Close the session
 	if err := sess.Close(); err != nil {

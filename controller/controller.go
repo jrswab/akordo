@@ -54,7 +54,6 @@ func NewSessionData(s *dg.Session) *SessionData {
 // NewMessage waits for a ne message to be sent in a the Discord guild
 // This kicks off a Goroutine to free up the mutex set by discordgo `AddHandler` method.
 func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
-	sd.UserXP.SetXpMsg(msg)
 	go sd.checkSyntax(msg)
 }
 
@@ -66,7 +65,7 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
-		sd.UserXP.ManipulateXP("addMessagePoints")
+		sd.UserXP.ManipulateXP("addMessagePoints", msg)
 		return
 	}
 
@@ -89,6 +88,7 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 
 	switch req[0] {
 	case sd.prefix + "crypto":
+		sd.crypto.XP = sd.UserXP
 		res, err = sd.crypto.Game(req, msg)
 	case sd.prefix + "gif":
 		res, err = sd.gifRequest.Gif(req, sd.session, msg)

@@ -12,11 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 )
 
 // Crypto holds data that is needed to pass around the crypto game functions.
 type Crypto struct {
+	XP           xp.Exp
 	words        []byte
 	encoded      string
 	lastEncoding int
@@ -47,7 +49,7 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 		}
 
 		if gameTimeout >= initTime {
-			return fmt.Sprintf("Please wait %d minutes to opening a new mine.", c.waitTime), nil
+			return fmt.Sprintf("Please wait %d minutes to open a new mine.", c.waitTime), nil
 		}
 
 		// Start a new crypto game
@@ -69,6 +71,7 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 	}
 
 	if isCorrect := c.checkGuess(userGuess); isCorrect {
+		c.XP.ManipulateXP("addGamePoints", msg)
 		return fmt.Sprintf("%s won this round! Will you be next?", msg.Author.Username), nil
 	}
 

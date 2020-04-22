@@ -17,7 +17,7 @@ const gamePoints float64 = 10
 // Exp is the interface for interacting with the xp methods
 type Exp interface {
 	LoadXP()
-	ManipulateXP(action string)
+	ManipulateXP(action string, msg *dg.MessageCreate)
 	AutoSaveXP(mutex *sync.Mutex)
 	SetXpMsg(msg *dg.MessageCreate)
 }
@@ -61,15 +61,15 @@ func (x *xpSystem) LoadXP() {
 	}
 }
 
-func (x *xpSystem) ManipulateXP(action string) {
+func (x *xpSystem) ManipulateXP(action string, msg *dg.MessageCreate) {
 	x.mutex.Lock()
 	defer x.mutex.Unlock()
 
 	switch action {
 	case "addMessagePoints":
-		x.awardActivity(x.msg)
+		x.awardActivity(msg)
 	case "addGamePoints":
-		x.gameReward(x.msg)
+		x.gameReward(msg)
 	case "save":
 		x.saveXP()
 	}
@@ -116,7 +116,7 @@ func (x *xpSystem) AutoSaveXP(mutex *sync.Mutex) {
 	for true {
 		select {
 		case <-time.After(5 * time.Minute):
-			x.ManipulateXP("save")
+			x.ManipulateXP("save", &dg.MessageCreate{})
 		}
 	}
 }
