@@ -67,8 +67,6 @@ func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	switch action {
 	case "addMessagePoints":
 		x.awardActivity(msg)
-	case "addGamePoints":
-		x.gameReward(msg)
 	case "save":
 		x.saveXP()
 	}
