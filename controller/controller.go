@@ -8,6 +8,7 @@ import (
 
 	"git.sr.ht/~jrswab/akordo/plugins"
 	plugs "git.sr.ht/~jrswab/akordo/plugins"
+	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 )
 
@@ -22,6 +23,7 @@ type Controller interface {
 type SessionData struct {
 	session *dg.Session
 	prefix  string
+	UserXP  xp.Exp
 
 	crypto      *plugins.Crypto
 	gifRequest  *plugs.GifRequest
@@ -35,6 +37,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 	return &SessionData{
 		session: s,
 		prefix:  `=`,
+		UserXP:  xp.NewXpStore(),
 
 		crypto:      plugs.NewCrypto(),
 		gifRequest:  plugs.NewGifRequest(),
@@ -47,21 +50,22 @@ func NewSessionData(s *dg.Session) *SessionData {
 // NewMessage waits for a ne message to be sent in a the Discord guild
 // This kicks off a Goroutine to free up the mutex set by discordgo `AddHandler` method.
 func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
-	go sd.checkSyntax(s, msg)
+	go sd.checkSyntax(msg)
 }
 
 // CheckSyntax uses regexp from the standard library to check the message has the correct
 // prefix as defined by the `prefix` constant.
-func (sd *SessionData) checkSyntax(s *dg.Session, msg *dg.MessageCreate) {
+func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	// Make sure the message matches the bot syntax
 	regEx := fmt.Sprintf("(?m)^%s(\\w|\\s)+", sd.prefix)
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
+		sd.UserXP.AwardXP(msg)
 		return
 	}
 
-	sd.ExecuteTask(s, msg)
+	sd.ExecuteTask(msg)
 }
 
 // ExecuteTask looks up the command found by the bot and kicks off a Goroutine do what
@@ -70,7 +74,7 @@ func (sd *SessionData) checkSyntax(s *dg.Session, msg *dg.MessageCreate) {
 // To remove a plugin simply remove the case statement for that plugin
 // To add a plugin, create a case statement for the plugin as shown below.
 // If the plugin is new create a new `.go` file under the `plugins` directory.
-func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
+func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	var res string
 	var err error
 	var isDM bool
@@ -82,16 +86,16 @@ func (sd *SessionData) ExecuteTask(s *dg.Session, msg *dg.MessageCreate) {
 	case sd.prefix + "crypto":
 		res, err = sd.crypto.Game(req, msg)
 	case sd.prefix + "gif":
-		res, err = sd.gifRequest.Gif(req, s, msg)
+		res, err = sd.gifRequest.Gif(req, sd.session, msg)
 	case sd.prefix + "man":
 		isDM = true
-		res = plugs.Manual(req, s, msg)
+		res = plugs.Manual(req, sd.session, msg)
 	case sd.prefix + "meme":
-		res, err = sd.memeRequest.RequestMeme(req, s, msg)
+		res, err = sd.memeRequest.RequestMeme(req, sd.session, msg)
 	case sd.prefix + "ping":
 		res = sd.pingRecord.Pong(msg)
 	case sd.prefix + "rule34":
-		res, err = sd.r34Request.Rule34(req, s, msg)
+		res, err = sd.r34Request.Rule34(req, sd.session, msg)
 	}
 
 	sd.Reply(res, err, isDM, msg)

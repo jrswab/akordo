@@ -36,6 +36,10 @@ func main() {
 
 	// Create a the custom controller to pass data to ReceiveMessage and the plugins
 	con := controller.NewSessionData(sess)
+	// Load saved XP data into the struct created by NewSessionData
+	if _, err := os.Stat("xp.json"); err == nil {
+		con.UserXP.LoadXP()
+	}
 
 	// Watch for new messages
 	sess.AddHandler(con.NewMessage)
@@ -51,6 +55,10 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
+	// Save data
+	con.UserXP.SaveXP()
+
+	// Close the session
 	if err := sess.Close(); err != nil {
 		log.Fatalf("session.Close failed: %s", err)
 	}

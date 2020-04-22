@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- XP system
+- xp.json to gitignore
+- .idea directory to gitingore (GoLand editor files)
+
+### Changed
+- akordo in gitignore to akordo* to exclude binaries with version tags.
 
 ## v0.6.0
 ### Added
