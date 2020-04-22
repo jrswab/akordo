@@ -35,14 +35,17 @@ func main() {
 	}
 
 	// Create a the custom controller to pass data to ReceiveMessage and the plugins
-	con := controller.NewSessionData(sess)
+	sd := controller.NewSessionData(sess)
 	// Load saved XP data into the struct created by NewSessionData
 	if _, err := os.Stat("xp.json"); err == nil {
-		con.UserXP.LoadXP()
+		sd.UserXP.LoadXP()
 	}
 
+	// start the Goroutine to automatically save earned XP
+	go sd.UserXP.AutoSaveXP(sd.Mutex)
+
 	// Watch for new messages
-	sess.AddHandler(con.NewMessage)
+	sess.AddHandler(sd.NewMessage)
 
 	if err = sess.Open(); err != nil {
 		log.Fatalf("Open session error: %s", err)
@@ -56,7 +59,7 @@ func main() {
 	<-sc
 
 	// Save data
-	con.UserXP.SaveXP()
+	sd.UserXP.SaveXP(sd.Mutex)
 
 	// Close the session
 	if err := sess.Close(); err != nil {

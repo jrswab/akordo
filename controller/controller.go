@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"sync"
 
 	"git.sr.ht/~jrswab/akordo/plugins"
 	plugs "git.sr.ht/~jrswab/akordo/plugins"
@@ -22,6 +23,7 @@ type Controller interface {
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
 	session *dg.Session
+	Mutex   *sync.Mutex
 	prefix  string
 	UserXP  xp.Exp
 
@@ -36,6 +38,7 @@ type SessionData struct {
 func NewSessionData(s *dg.Session) *SessionData {
 	return &SessionData{
 		session: s,
+		Mutex:   &sync.Mutex{},
 		prefix:  `=`,
 		UserXP:  xp.NewXpStore(),
 
@@ -61,7 +64,7 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
-		sd.UserXP.AwardXP(msg)
+		sd.UserXP.AwardActivity(sd.Mutex, msg)
 		return
 	}
 
