@@ -46,7 +46,7 @@ func NewGifRequest(url ...string) *GifRequest {
 func (g *GifRequest) Gif(req []string, s *dg.Session, msg *dg.MessageCreate) (string, error) {
 	r := g.Record
 	// Check the last time the user made this request
-	alertUser, tooSoon := r.checkLastAsk(msg)
+	alertUser, tooSoon := r.CheckLastAsk(msg)
 	if tooSoon {
 		return alertUser, nil
 	}

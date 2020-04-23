@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .idea directory to gitingore (GoLand editor files)
 - XP reward to crypto game
 - XP load, save, and autosave to main.go
+- Unit tests for the XP package
 
 ### Changed
 - akordo in gitignore to akordo* to exclude binaries with version tags.

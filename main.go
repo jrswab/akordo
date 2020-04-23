@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"git.sr.ht/~jrswab/akordo/controller"
+	"git.sr.ht/~jrswab/akordo/xp"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -36,9 +37,12 @@ func main() {
 
 	// Create a the custom controller to pass data to ReceiveMessage and the plugins
 	sd := controller.NewSessionData(sess)
+
 	// Load saved XP data into the struct created by NewSessionData
-	if _, err := os.Stat("xp.json"); err == nil {
-		sd.UserXP.LoadXP()
+	if _, err := os.Stat(xp.DefaultFile); err == nil {
+		if err := sd.UserXP.LoadXP(xp.DefaultFile); err != nil {
+			log.Printf("error loading xp data: %s", err)
+		}
 	}
 
 	// start the Goroutine to automatically save earned XP

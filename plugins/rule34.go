@@ -66,7 +66,7 @@ func (rr *Rule34Request) Rule34(req []string, s AkSession, msg *dg.MessageCreate
 	}
 
 	// Check the last time the user made this request
-	alertUser, tooSoon := r.checkLastAsk(msg)
+	alertUser, tooSoon := r.CheckLastAsk(msg)
 	if tooSoon {
 		return alertUser, nil
 	}

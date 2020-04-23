@@ -91,7 +91,7 @@ func TestRecord_checkLastAsk(t *testing.T) {
 				MinWaitTime: tt.fields.MinWaitTime,
 				LastReq:     tt.fields.LastReq,
 			}
-			got, gotBool := r.checkLastAsk(tt.args.msg)
+			got, gotBool := r.CheckLastAsk(tt.args.msg)
 			if got != tt.want {
 				t.Errorf("Record.checkLastAsk() got = %v, want %v", got, tt.want)
 			}

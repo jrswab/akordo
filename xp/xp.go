@@ -2,35 +2,34 @@ package xp
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
+	p "git.sr.ht/~jrswab/akordo/plugins"
 	dg "github.com/bwmarrin/discordgo"
 )
 
+// DefaultFile is the path where the xp data is saved.
+const DefaultFile string = "xp.json"
 const messagePoints float64 = 0.01
-
-// GamePoints is exported to be used when games need to tell the winner how many
-// points they have received.
-const GamePoints float64 = 10
 
 // Exp is the interface for interacting with the xp methods
 type Exp interface {
-	LoadXP()
+	LoadXP(file string) error
 	ManipulateXP(action string, msg *dg.MessageCreate)
 	AutoSaveXP()
+	ReturnXp(req []string, msg *dg.MessageCreate) (string, error)
 }
 
 // System holds all data needed to execute the functionality.
 type System struct {
-	data   *xpData
-	mutex  *sync.Mutex
-	User   string
-	Points float64
-	Award  float64
+	data    *xpData
+	callRec *p.Record
+	mutex   *sync.Mutex
 }
 
 // DataStore holds the experience gained by each user.
@@ -41,22 +40,24 @@ type xpData struct {
 // NewXpStore creates the experience data storage map for the session
 func NewXpStore(mtx *sync.Mutex) Exp {
 	return &System{
-		data:  &xpData{Users: make(map[string]float64)},
-		mutex: mtx,
+		data:    &xpData{Users: make(map[string]float64)},
+		callRec: p.NewRecorder(),
+		mutex:   mtx,
 	}
 }
 
 // LoadXP loads the saved xp data from the json file
-func (x *System) LoadXP() {
-	savedXp, err := ioutil.ReadFile("xp.json")
+func (x *System) LoadXP(file string) error {
+	savedXp, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	err = json.Unmarshal(savedXp, x.data)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 // ManipulateXP is used by any part of the program that needs to read or write
@@ -68,7 +69,7 @@ func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	case "addMessagePoints":
 		x.awardActivity(msg)
 	case "save":
-		x.saveXP()
+		x.saveXP(DefaultFile)
 	}
 
 	x.mutex.Unlock()
@@ -86,19 +87,6 @@ func (x *System) awardActivity(msg *dg.MessageCreate) {
 	}
 
 	x.writeToXpMap(user, float64(award), messagePoints)
-}
-
-func (x *System) gameReward(msg *dg.MessageCreate) {
-	award := 1.00 // No reward bonus
-	user := msg.Author.ID
-
-	// Don't award points to the bot
-	// Set `BOT_ID` as an environment variable to exclude the bot.
-	if user == checkBotID() {
-		return
-	}
-
-	x.writeToXpMap(user, award, GamePoints)
 }
 
 func (x *System) writeToXpMap(user string, award, points float64) {
@@ -122,17 +110,18 @@ func (x *System) AutoSaveXP() {
 }
 
 // SaveXP saves the current struct data to a json file
-func (x *System) saveXP() {
+func (x *System) saveXP(file string) error {
 	json, err := json.MarshalIndent(x.data, "", "  ")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Write to data to a file
-	err = ioutil.WriteFile("xp.json", json, 0600)
+	err = ioutil.WriteFile(file, json, 0600)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 func checkBotID() string {
@@ -140,4 +129,27 @@ func checkBotID() string {
 	// the bot to gain experience.
 	botID, _ := os.LookupEnv("BOT_TOKEN")
 	return botID
+}
+
+// ReturnXp checks the user's request and returns xp data based on the command entered.
+func (x *System) ReturnXp(req []string, msg *dg.MessageCreate) (string, error) {
+	if len(req) < 2 {
+		return x.userXp(msg)
+	}
+
+	return "Sorry, the developers have not added that feature yet :sob:", nil
+}
+
+func (x *System) userXp(msg *dg.MessageCreate) (string, error) {
+	alertUser, tooSoon := x.callRec.CheckLastAsk(msg)
+	if tooSoon {
+		return alertUser, nil
+	}
+
+	xpFloat, ok := x.data.Users[msg.Author.ID]
+	if !ok {
+		return "", fmt.Errorf("%s, you have not earned any XP", msg.Author.Username)
+	}
+	xp := strconv.FormatFloat(xpFloat, 'f', 2, 64)
+	return xp, nil
 }

@@ -60,7 +60,7 @@ func (m *MemeRequest) RequestMeme(req []string, s *dg.Session, msg *dg.MessageCr
 	}
 
 	// Check the last time the user made this request
-	alertUser, tooSoon := m.record.checkLastAsk(msg)
+	alertUser, tooSoon := m.record.CheckLastAsk(msg)
 	if tooSoon {
 		return alertUser, nil
 	}

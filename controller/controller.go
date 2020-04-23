@@ -100,6 +100,8 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		res = sd.pingRecord.Pong(msg)
 	case sd.prefix + "rule34":
 		res, err = sd.r34Request.Rule34(req, sd.session, msg)
+	case sd.prefix + "xp":
+		res, err = sd.UserXP.ReturnXp(req, msg)
 	}
 
 	sd.Reply(res, err, isDM, msg)
