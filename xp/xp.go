@@ -146,31 +146,34 @@ func (x *System) ReturnXp(req []string, msg *dg.MessageCreate) (string, error) {
 	regEx := fmt.Sprintf("(?m)^<@!\\w+>")
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(req[1])
-	if !match {
-		var name string
-		for idx, words := range req[1:] {
-			name = fmt.Sprintf("%s", words)
-			if idx > 0 {
-				name = fmt.Sprintf("%s %s", name, words)
-			}
-		}
+	if match {
+		id = strings.TrimPrefix(req[1], "<@!")
+		id = strings.TrimSuffix(id, ">")
 
-		id, err := x.findUserID(name, msg)
+		member, err := x.dgs.GuildMember(msg.GuildID, id)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("returnXP() call to GuildMember returned: %s", err)
 		}
 
-		if id == "" {
-			return "User not found :thinking:", nil
-		}
-
-		return x.userXp(name, id, msg)
+		return x.userXp(member.User.Username, id, msg)
 	}
 
-	id = strings.TrimPrefix(req[1], "<@!")
-	id = strings.TrimSuffix(user, ">")
+	if !match {
+		for idx, word := range req[1:] {
+			if idx == 0 {
+				user = word
+				continue
+			}
+			user = fmt.Sprintf("%s %s", user, word)
+		}
+		id, err := x.findUserID(user, msg)
+		if err != nil {
+			return "", fmt.Errorf("findUserID error: %s", err)
+		}
+		return x.userXp(user, id, msg)
+	}
 
-	return x.userXp("", id, msg)
+	return "User not found :thinking:", nil
 }
 
 func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (string, error) {
@@ -189,14 +192,17 @@ func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (string, err
 
 	xp, ok := x.data.Users[userID]
 	if !ok {
-		return fmt.Sprintf("%s, you have not earned any XP", name), nil
+		return fmt.Sprintf("%s has not earned any XP", name), nil
 	}
 
 	return fmt.Sprintf("%s has a total of %.2f xp", name, xp), nil
 }
 
 func (x *System) findUserID(userName string, msg *dg.MessageCreate) (string, error) {
-	var members []*dg.Member
+	var (
+		members []*dg.Member
+		err     error
+	)
 
 	// Get first round of members
 	current, err := x.dgs.GuildMembers(msg.GuildID, "", 1000)
@@ -211,7 +217,7 @@ func (x *System) findUserID(userName string, msg *dg.MessageCreate) (string, err
 	// if first round has 1000 entries run again until all members are present.
 	for len(current) == 1000 {
 		lastMember := current[len(current)-1]
-		current, err := x.dgs.GuildMembers(msg.GuildID, lastMember.User.ID, 1000)
+		current, err = x.dgs.GuildMembers(msg.GuildID, lastMember.User.ID, 1000)
 		if err != nil {
 			return "", err
 		}
