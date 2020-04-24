@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,6 +31,7 @@ type System struct {
 	data    *xpData
 	callRec *p.Record
 	mutex   *sync.Mutex
+	dgs     *dg.Session
 }
 
 // DataStore holds the experience gained by each user.
@@ -38,11 +40,12 @@ type xpData struct {
 }
 
 // NewXpStore creates the experience data storage map for the session
-func NewXpStore(mtx *sync.Mutex) Exp {
+func NewXpStore(mtx *sync.Mutex, s *dg.Session) Exp {
 	return &System{
 		data:    &xpData{Users: make(map[string]float64)},
 		callRec: p.NewRecorder(),
 		mutex:   mtx,
+		dgs:     s,
 	}
 }
 
@@ -133,23 +136,99 @@ func checkBotID() string {
 
 // ReturnXp checks the user's request and returns xp data based on the command entered.
 func (x *System) ReturnXp(req []string, msg *dg.MessageCreate) (string, error) {
+	var id, user string
+
+	// When user runs the xp command with alone return that user's XP
 	if len(req) < 2 {
-		return x.userXp(msg)
+		return x.userXp("", "", msg)
 	}
 
-	return "Sorry, the developers have not added that feature yet :sob:", nil
+	regEx := fmt.Sprintf("(?m)^<@!\\w+>")
+	var re = regexp.MustCompile(regEx)
+	match := re.MatchString(req[1])
+	if !match {
+		var name string
+		for idx, words := range req[1:] {
+			name = fmt.Sprintf("%s", words)
+			if idx > 0 {
+				name = fmt.Sprintf("%s %s", name, words)
+			}
+		}
+
+		id, err := x.findUserID(name, msg)
+		if err != nil {
+			return "", err
+		}
+
+		if id == "" {
+			return "User not found :thinking:", nil
+		}
+
+		return x.userXp(name, id, msg)
+	}
+
+	id = strings.TrimPrefix(req[1], "<@!")
+	id = strings.TrimSuffix(user, ">")
+
+	return x.userXp("", id, msg)
 }
 
-func (x *System) userXp(msg *dg.MessageCreate) (string, error) {
+func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (string, error) {
 	alertUser, tooSoon := x.callRec.CheckLastAsk(msg)
 	if tooSoon {
 		return alertUser, nil
 	}
 
-	xpFloat, ok := x.data.Users[msg.Author.ID]
-	if !ok {
-		return "", fmt.Errorf("%s, you have not earned any XP", msg.Author.Username)
+	if userID == "" {
+		userID = msg.Author.ID
 	}
-	xp := strconv.FormatFloat(xpFloat, 'f', 2, 64)
-	return xp, nil
+
+	if name == "" {
+		name = msg.Author.Username
+	}
+
+	xp, ok := x.data.Users[userID]
+	if !ok {
+		return fmt.Sprintf("%s, you have not earned any XP", name), nil
+	}
+
+	return fmt.Sprintf("%s has a total of %.2f xp", name, xp), nil
+}
+
+func (x *System) findUserID(userName string, msg *dg.MessageCreate) (string, error) {
+	var members []*dg.Member
+
+	// Get first round of members
+	current, err := x.dgs.GuildMembers(msg.GuildID, "", 1000)
+	if err != nil {
+		return "", err
+	}
+
+	for _, names := range current {
+		members = append(members, names)
+	}
+
+	// if first round has 1000 entries run again until all members are present.
+	for len(current) == 1000 {
+		lastMember := current[len(current)-1]
+		current, err := x.dgs.GuildMembers(msg.GuildID, lastMember.User.ID, 1000)
+		if err != nil {
+			return "", err
+		}
+
+		for _, names := range current {
+			members = append(members, names)
+		}
+
+	}
+
+	// Create map of usernames and IDs
+	userMap := make(map[string]string)
+	for _, m := range members {
+		userMap[m.User.Username] = m.User.ID
+	}
+
+	userID := userMap[userName]
+
+	return userID, nil
 }

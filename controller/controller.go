@@ -47,7 +47,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 		pingRecord:  plugs.NewRecorder(),
 		r34Request:  plugs.NewRule34Request(),
 	}
-	sd.UserXP = xp.NewXpStore(sd.Mutex)
+	sd.UserXP = xp.NewXpStore(sd.Mutex, sd.session)
 	return sd
 }
 
@@ -79,9 +79,11 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 // To add a plugin, create a case statement for the plugin as shown below.
 // If the plugin is new create a new `.go` file under the `plugins` directory.
 func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
-	var res string
-	var err error
-	var isDM bool
+	var (
+		res     string
+		msgType string
+		err     error
+	)
 
 	// Split the string to a slice to parse parameters
 	req := strings.Split(msg.Content, " ")
@@ -92,7 +94,7 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	case sd.prefix + "gif":
 		res, err = sd.gifRequest.Gif(req, sd.session, msg)
 	case sd.prefix + "man":
-		isDM = true
+		msgType = "dm"
 		res = plugs.Manual(req, sd.session, msg)
 	case sd.prefix + "meme":
 		res, err = sd.memeRequest.RequestMeme(req, sd.session, msg)
@@ -104,12 +106,12 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		res, err = sd.UserXP.ReturnXp(req, msg)
 	}
 
-	sd.Reply(res, err, isDM, msg)
+	sd.Reply(res, msgType, err, msg)
 }
 
 // Reply takes the executed data and replies to the user. This is either in the channel
 // where the command was sent or as a direct message to the user.
-func (sd *SessionData) Reply(res string, err error, isDM bool, msg *dg.MessageCreate) {
+func (sd *SessionData) Reply(res, msgType string, err error, msg *dg.MessageCreate) {
 	s := sd.session
 
 	if err != nil {
@@ -121,23 +123,34 @@ func (sd *SessionData) Reply(res string, err error, isDM bool, msg *dg.MessageCr
 		return
 	}
 
-	if isDM {
-		dm, err := s.UserChannelCreate(msg.Author.ID)
+	switch msgType {
+	case "dm":
+		sd.sendAsDM(res, msg)
+	//case "embed":
+	default:
+		_, err = s.ChannelMessageSend(msg.ChannelID, res)
 		if err != nil {
-			log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
-				msg.Author.Username, err)
-			return
+			log.Printf("session.ChannelMessageSend failed: %s", err)
 		}
+	}
+}
 
-		_, err = s.ChannelMessageSend(dm.ID, res)
-		if err != nil {
-			log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
-		}
+func (sd *SessionData) sendAsDM(res string, msg *dg.MessageCreate) {
+	s := sd.session
+	dm, err := s.UserChannelCreate(msg.Author.ID)
+	if err != nil {
+		log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
+			msg.Author.Username, err)
 		return
 	}
 
-	_, err = s.ChannelMessageSend(msg.ChannelID, res)
+	_, err = s.ChannelMessageSend(dm.ID, res)
 	if err != nil {
-		log.Printf("session.ChannelMessageSend failed: %s", err)
+		log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
 	}
+	return
+}
+
+func (sd *SessionData) sendAsEmbed() {
+
 }
