@@ -8,6 +8,7 @@
 # Project generated files
 akordo*
 xp.json
+autoRanks.json
 
 # Test binary, built with `go test -c`
 *.test

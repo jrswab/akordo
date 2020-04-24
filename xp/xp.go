@@ -2,6 +2,7 @@ package xp
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -19,6 +20,8 @@ const messagePoints float64 = 0.01
 type AkSession interface {
 	GuildMember(guildID string, userID string) (st *dg.Member, err error)
 	GuildMembers(guildID string, after string, limit int) (st []*dg.Member, err error)
+	GuildRoles(guildID string) (st []*dg.Role, err error)
+	GuildMemberRoleAdd(guildID string, userID string, roleID string) (err error)
 }
 
 // Exp is the interface for interacting with the xp methods
@@ -27,11 +30,13 @@ type Exp interface {
 	ManipulateXP(action string, msg *dg.MessageCreate)
 	AutoSaveXP()
 	Execute(req []string, msg *dg.MessageCreate) (string, error)
+	AutoPromote(msg *dg.MessageCreate) error
 }
 
 // System holds all data needed to execute the functionality.
 type System struct {
 	data        *xpData
+	tiers       *autoRanks
 	defaultFile string
 	callRec     *p.Record
 	mutex       *sync.Mutex
@@ -47,6 +52,7 @@ type xpData struct {
 func NewXpStore(mtx *sync.Mutex, s *dg.Session) Exp {
 	return &System{
 		data:        &xpData{Users: make(map[string]float64)},
+		tiers:       &autoRanks{Tiers: make(map[string]float64)},
 		callRec:     p.NewRecorder(),
 		mutex:       mtx,
 		dgs:         s,
@@ -137,4 +143,43 @@ func checkBotID() string {
 	// the bot to gain experience.
 	botID, _ := os.LookupEnv("BOT_TOKEN")
 	return botID
+}
+
+// AutoPromote checks the user's current XP after each messag sent
+// and promotes the user to the correct role if crosses a certain threshold.
+func (x *System) AutoPromote(msg *dg.MessageCreate) error {
+	userID := msg.Author.ID
+
+	// Get roles set in the guild (server)
+	roles, err := x.dgs.GuildRoles(msg.GuildID)
+	if err != nil {
+		return fmt.Errorf("AutoPromote failed: %s", err)
+	}
+
+	// Set up the map of role names to their IDs
+	roleMap := make(map[string]string)
+	for _, role := range roles {
+		roleMap[role.Name] = role.ID
+	}
+
+	// Get user's current total xp
+	totalXP, ok := x.data.Users[userID]
+	if !ok {
+		return fmt.Errorf("user ID (%s) not found", userID)
+	}
+
+	// Set all roles that the user's xp allows
+	var roleID string
+	for roleName, minXP := range x.tiers.Tiers {
+		if totalXP >= minXP {
+			roleID = roleMap[roleName]
+		}
+	}
+
+	err = x.dgs.GuildMemberRoleAdd(msg.GuildID, userID, roleID)
+	if err != nil {
+		return fmt.Errorf("x.AutoPromote() failed: %s", err)
+	}
+
+	return nil
 }

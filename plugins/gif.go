@@ -92,7 +92,13 @@ func requestGif(url string) (string, error) {
 		return "No results found :sob:", nil
 	}
 	rand.Seed(time.Now().UnixNano())
-	n := rand.Intn(len(v.Data) - 1)
+	returnLen := len(v.Data) - 1
+
+	if returnLen == 0 {
+		return v.Data[0].EmbedURL, nil
+	}
+
+	n := rand.Intn(returnLen)
 
 	return v.Data[n].EmbedURL, nil
 }

@@ -1,12 +1,17 @@
 package xp
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"regexp"
+	"strconv"
 	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
 )
+
+const defaultRoleFile string = "autoRanks.json"
 
 // Execute is the method used to run the correct method based on user input.
 func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
@@ -22,9 +27,10 @@ func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
 			return "", err
 		}
 		return "XP data saved!", nil
-	default:
-		return x.returnXp(req, msg)
+	case "aar":
+		return x.addAutoRank(defaultRoleFile, req[2], req[3])
 	}
+	return x.returnXp(req, msg)
 }
 
 // ReturnXp checks the user's request and returns xp data based on the command entered.
@@ -124,4 +130,53 @@ func (x *System) findUserID(userName string, msg *dg.MessageCreate) (string, err
 	userID := userMap[userName]
 
 	return userID, nil
+}
+
+type autoRanks struct {
+	Tiers map[string]float64 `json:"tiers"` // map of total xp of role IDs
+}
+
+func (x *System) addAutoRank(file, roleName, minXP string) (string, error) {
+	// Command: =xp aar roleName minXP
+	xp, err := strconv.ParseFloat(minXP, 64)
+	if err != nil {
+		return "", fmt.Errorf("addAutoRanks() return: %s", err)
+	}
+	x.tiers.Tiers[roleName] = xp
+
+	err = x.saveAutoRanks(file)
+	if err != nil {
+		return "", fmt.Errorf("saveAutoRanks failed: %s", err)
+	}
+
+	return fmt.Sprintf("Added %s to be awarded at >= %.2f", roleName, xp), nil
+}
+
+// LoadAutoRanks loads the saved xp data from the json file
+func (x *System) LoadAutoRanks(file string) error {
+	savedTiers, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(savedTiers, x.tiers)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SaveXP saves the current struct data to a json file
+func (x *System) saveAutoRanks(file string) error {
+	json, err := json.MarshalIndent(x.tiers, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	// Write to data to a file
+	err = ioutil.WriteFile(file, json, 0600)
+	if err != nil {
+		return err
+	}
+	return nil
 }

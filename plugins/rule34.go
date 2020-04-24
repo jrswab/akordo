@@ -103,8 +103,15 @@ func requestPron(url string) (string, error) {
 	if len(v.Post) < 1 {
 		return "No results found :sob:", nil
 	}
+
 	rand.Seed(time.Now().UnixNano())
-	n := rand.Intn(len(v.Post) - 1)
+	returnLen := len(v.Post) - 1
+
+	if returnLen == 0 {
+		return v.Post[0].SampleURL, nil
+	}
+
+	n := rand.Intn(returnLen)
 
 	return v.Post[n].SampleURL, nil
 }

@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - xp.json to gitignore
 - .idea directory to gitingore (GoLand editor files)
 - envars file to .gitignore
+- .autoRanks.json to .gitignore
 - XP reward to crypto game
 - XP load, save, and autosave to main.go
 - Unit tests for the XP package
 - XP command catch to switch clause in controller.go
+- Auto promotion of roles based on user XP
 
 ### Changed
 - akordo in gitignore to akordo* to exclude binaries with version tags.
@@ -21,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `checkLastAsk` to be exported for use by xp.go
 - All every usage of `checkLastAsk` to `CheckLastAsk`
 - Changed hard coded file name in main.go to the exported variable from xp.go
+
+### Fixed
+- gif and rule34 commands when they return only one image and caused a panic
 
 ## v0.6.0
 ### Added

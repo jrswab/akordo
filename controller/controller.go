@@ -60,6 +60,11 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	if !match {
 		// Add xp for all non-bot messages
 		sd.XP.ManipulateXP("addMessagePoints", msg)
+		// Check for role promotion
+		err := sd.XP.AutoPromote(msg)
+		if err != nil {
+			log.Println(err)
+		}
 		return
 	}
 
