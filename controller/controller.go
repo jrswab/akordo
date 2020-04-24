@@ -25,7 +25,7 @@ type SessionData struct {
 	session *dg.Session
 	Mutex   *sync.Mutex
 	prefix  string
-	UserXP  xp.Exp
+	XP      xp.Exp
 
 	crypto      *plugins.Crypto
 	gifRequest  *plugs.GifRequest
@@ -47,7 +47,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 		pingRecord:  plugs.NewRecorder(),
 		r34Request:  plugs.NewRule34Request(),
 	}
-	sd.UserXP = xp.NewXpStore(sd.Mutex, sd.session)
+	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
 	return sd
 }
 
@@ -65,7 +65,8 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
-		sd.UserXP.ManipulateXP("addMessagePoints", msg)
+		// Add xp for all non-bot messages
+		sd.XP.ManipulateXP("addMessagePoints", msg)
 		return
 	}
 
@@ -103,7 +104,7 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	case sd.prefix + "rule34":
 		res, err = sd.r34Request.Rule34(req, sd.session, msg)
 	case sd.prefix + "xp":
-		res, err = sd.UserXP.ReturnXp(req, msg)
+		res, err = sd.XP.Execute(req, msg)
 	}
 
 	sd.Reply(res, msgType, err, msg)

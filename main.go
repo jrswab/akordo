@@ -40,13 +40,13 @@ func main() {
 
 	// Load saved XP data into the struct created by NewSessionData
 	if _, err := os.Stat(xp.DefaultFile); err == nil {
-		if err := sd.UserXP.LoadXP(xp.DefaultFile); err != nil {
+		if err := sd.XP.LoadXP(xp.DefaultFile); err != nil {
 			log.Printf("error loading xp data: %s", err)
 		}
 	}
 
 	// start the Goroutine to automatically save earned XP
-	go sd.UserXP.AutoSaveXP()
+	go sd.XP.AutoSaveXP()
 
 	// Watch for new messages
 	sess.AddHandler(sd.NewMessage)
@@ -63,7 +63,7 @@ func main() {
 	<-sc
 
 	// Save data
-	sd.UserXP.ManipulateXP("save", &discordgo.MessageCreate{})
+	sd.XP.ManipulateXP("save", &discordgo.MessageCreate{})
 
 	// Close the session
 	if err := sess.Close(); err != nil {
