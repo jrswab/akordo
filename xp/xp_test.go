@@ -5,14 +5,17 @@ import (
 	"sync"
 	"testing"
 
+	p "git.sr.ht/~jrswab/akordo/plugins"
 	dg "github.com/bwmarrin/discordgo"
 )
 
 func TestNewXpStore(t *testing.T) {
 	testMutex := &sync.Mutex{}
+	testSession := &dg.Session{}
 
 	type args struct {
 		mtx *sync.Mutex
+		dgs *dg.Session
 	}
 	tests := []struct {
 		name string
@@ -21,16 +24,18 @@ func TestNewXpStore(t *testing.T) {
 	}{
 		{
 			name: "Create default xpStore",
-			args: args{testMutex},
+			args: args{testMutex, testSession},
 			want: &System{
-				data:  &xpData{Users: make(map[string]float64)},
-				mutex: testMutex,
+				data:    &xpData{Users: make(map[string]float64)},
+				mutex:   testMutex,
+				dgs:     testSession,
+				callRec: p.NewRecorder(),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewXpStore(tt.args.mtx); !reflect.DeepEqual(got, tt.want) {
+			if got := NewXpStore(tt.args.mtx, tt.args.dgs); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewXpStore() = %v, want %v", got, tt.want)
 			}
 		})
