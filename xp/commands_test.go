@@ -2,6 +2,7 @@ package xp
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -20,11 +21,36 @@ func TestSystem_Execute(t *testing.T) {
 			Username: "jrswab",
 		},
 	}
-	mockMembSlice := []*dg.Member{mockMemb}
+	mockMembSlice := []*dg.Member{}
+	// create a []*dg.Member with 1000 "members"
+	for i := 0; i < 999; i++ {
+		if i == 0 {
+			mockMembSlice = append(mockMembSlice, mockMemb)
+		}
+
+		mockMembInc := &dg.Member{
+			User: &dg.User{
+				ID:       strconv.Itoa(i),
+				Username: fmt.Sprintf("User%d", i),
+			},
+		}
+
+		mockMembSlice = append(mockMembSlice, mockMembInc)
+	}
+
+	mockMembSlice2 := []*dg.Member{
+		{
+			User: &dg.User{
+				ID:       "1000",
+				Username: "User1000",
+			},
+		},
+	}
 
 	mockSess := new(mocks.AkSession)
 	mockSess.On("GuildMember", "1111", "165899680323076097").Return(mockMemb, nil).Once()
 	mockSess.On("GuildMembers", "1111", "", 1000).Return(mockMembSlice, nil)
+	mockSess.On("GuildMembers", "1111", "998", 1000).Return(mockMembSlice2, nil)
 
 	type fields struct {
 		data        *xpData
