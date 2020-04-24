@@ -15,21 +15,27 @@ import (
 const DefaultFile string = "xp.json"
 const messagePoints float64 = 0.01
 
+// AkSession allows for tests to mock discordgo session method calls
+type AkSession interface {
+	GuildMember(guildID string, userID string) (st *dg.Member, err error)
+	GuildMembers(guildID string, after string, limit int) (st []*dg.Member, err error)
+}
+
 // Exp is the interface for interacting with the xp methods
 type Exp interface {
 	LoadXP(file string) error
 	ManipulateXP(action string, msg *dg.MessageCreate)
 	AutoSaveXP()
 	Execute(req []string, msg *dg.MessageCreate) (string, error)
-	//ReturnXp(req []string, msg *dg.MessageCreate) (string, error)
 }
 
 // System holds all data needed to execute the functionality.
 type System struct {
-	data    *xpData
-	callRec *p.Record
-	mutex   *sync.Mutex
-	dgs     *dg.Session
+	data        *xpData
+	defaultFile string
+	callRec     *p.Record
+	mutex       *sync.Mutex
+	dgs         AkSession
 }
 
 // DataStore holds the experience gained by each user.
@@ -40,10 +46,11 @@ type xpData struct {
 // NewXpStore creates the experience data storage map for the session
 func NewXpStore(mtx *sync.Mutex, s *dg.Session) Exp {
 	return &System{
-		data:    &xpData{Users: make(map[string]float64)},
-		callRec: p.NewRecorder(),
-		mutex:   mtx,
-		dgs:     s,
+		data:        &xpData{Users: make(map[string]float64)},
+		callRec:     p.NewRecorder(),
+		mutex:       mtx,
+		dgs:         s,
+		defaultFile: DefaultFile,
 	}
 }
 
@@ -70,7 +77,7 @@ func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	case "addMessagePoints":
 		x.awardActivity(msg)
 	case "save":
-		x.saveXP(DefaultFile)
+		x.saveXP(x.defaultFile)
 	}
 
 	x.mutex.Unlock()

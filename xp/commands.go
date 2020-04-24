@@ -10,18 +10,26 @@ import (
 
 // Execute is the method used to run the correct method based on user input.
 func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
-	return x.returnXp(req, msg)
-}
-
-// ReturnXp checks the user's request and returns xp data based on the command entered.
-func (x *System) returnXp(req []string, msg *dg.MessageCreate) (string, error) {
-	var id, user string
-
 	// When user runs the xp command with alone return that user's XP
 	if len(req) < 2 {
 		return x.userXp("", "", msg)
 	}
 
+	switch req[1] {
+	case "save":
+		// DefaultFile is declared in xp/xp.go
+		if err := x.saveXP(DefaultFile); err != nil {
+			return "", err
+		}
+		return "XP data saved!", nil
+	default:
+		return x.returnXp(req, msg)
+	}
+}
+
+// ReturnXp checks the user's request and returns xp data based on the command entered.
+func (x *System) returnXp(req []string, msg *dg.MessageCreate) (string, error) {
+	var id, user string
 	regEx := fmt.Sprintf("(?m)^<@!\\w+>")
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(req[1])

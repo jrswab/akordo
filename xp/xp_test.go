@@ -26,10 +26,11 @@ func TestNewXpStore(t *testing.T) {
 			name: "Create default xpStore",
 			args: args{testMutex, testSession},
 			want: &System{
-				data:    &xpData{Users: make(map[string]float64)},
-				mutex:   testMutex,
-				dgs:     testSession,
-				callRec: p.NewRecorder(),
+				data:        &xpData{Users: make(map[string]float64)},
+				mutex:       testMutex,
+				dgs:         testSession,
+				callRec:     p.NewRecorder(),
+				defaultFile: DefaultFile,
 			},
 		},
 	}

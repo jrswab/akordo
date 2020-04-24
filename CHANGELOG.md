@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XP system
 - xp.json to gitignore
 - .idea directory to gitingore (GoLand editor files)
+- envars file to .gitignore
 - XP reward to crypto game
 - XP load, save, and autosave to main.go
 - Unit tests for the XP package

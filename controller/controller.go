@@ -13,13 +13,6 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-// Controller is used for testing and is implemented by methods that controller how the user
-// message gets distributed to the plugins.
-type Controller interface {
-	CheckSyntax(s *dg.Session, msg *dg.MessageCreate)
-	ExecuteTask(req []string, s *dg.Session, msg *dg.MessageCreate)
-}
-
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
 	session *dg.Session

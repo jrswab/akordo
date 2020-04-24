@@ -17,3 +17,6 @@ xp.json
 
 # GoLand directory
 .idea/
+
+# Environment variables for the bot
+envars
