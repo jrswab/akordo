@@ -12,8 +12,8 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-// DefaultFile is the path where the xp data is saved.
-const DefaultFile string = "xp.json"
+// XpFile is the path where the xp data is saved.
+const XpFile string = "xp.json"
 const messagePoints float64 = 0.01
 
 // AkSession allows for tests to mock discordgo session method calls
@@ -31,16 +31,16 @@ type Exp interface {
 	AutoSaveXP()
 	Execute(req []string, msg *dg.MessageCreate) (string, error)
 	AutoPromote(msg *dg.MessageCreate) error
+	LoadAutoRanks(file string) error
 }
 
 // System holds all data needed to execute the functionality.
 type System struct {
-	data        *xpData
-	tiers       *autoRanks
-	defaultFile string
-	callRec     *p.Record
-	mutex       *sync.Mutex
-	dgs         AkSession
+	data    *xpData
+	tiers   *autoRanks
+	callRec *p.Record
+	mutex   *sync.Mutex
+	dgs     AkSession
 }
 
 // DataStore holds the experience gained by each user.
@@ -51,12 +51,11 @@ type xpData struct {
 // NewXpStore creates the experience data storage map for the session
 func NewXpStore(mtx *sync.Mutex, s *dg.Session) Exp {
 	return &System{
-		data:        &xpData{Users: make(map[string]float64)},
-		tiers:       &autoRanks{Tiers: make(map[string]float64)},
-		callRec:     p.NewRecorder(),
-		mutex:       mtx,
-		dgs:         s,
-		defaultFile: DefaultFile,
+		data:    &xpData{Users: make(map[string]float64)},
+		tiers:   &autoRanks{Tiers: make(map[string]float64)},
+		callRec: p.NewRecorder(),
+		mutex:   mtx,
+		dgs:     s,
 	}
 }
 
@@ -83,7 +82,7 @@ func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	case "addMessagePoints":
 		x.awardActivity(msg)
 	case "save":
-		x.saveXP(x.defaultFile)
+		x.saveXP(XpFile)
 	}
 
 	x.mutex.Unlock()
@@ -149,11 +148,12 @@ func checkBotID() string {
 // and promotes the user to the correct role if crosses a certain threshold.
 func (x *System) AutoPromote(msg *dg.MessageCreate) error {
 	userID := msg.Author.ID
+	guildID := msg.GuildID
 
 	// Get roles set in the guild (server)
-	roles, err := x.dgs.GuildRoles(msg.GuildID)
+	roles, err := x.dgs.GuildRoles(guildID)
 	if err != nil {
-		return fmt.Errorf("AutoPromote failed: %s", err)
+		return fmt.Errorf("GuildRoles failed: %s", err)
 	}
 
 	// Set up the map of role names to their IDs
@@ -173,12 +173,17 @@ func (x *System) AutoPromote(msg *dg.MessageCreate) error {
 	for roleName, minXP := range x.tiers.Tiers {
 		if totalXP >= minXP {
 			roleID = roleMap[roleName]
+			break
 		}
 	}
 
-	err = x.dgs.GuildMemberRoleAdd(msg.GuildID, userID, roleID)
+	if roleID == "" {
+		return nil
+	}
+
+	err = x.dgs.GuildMemberRoleAdd(guildID, userID, roleID)
 	if err != nil {
-		return fmt.Errorf("x.AutoPromote() failed: %s", err)
+		return fmt.Errorf("GuildMemberRoleAdd failed: %s", err)
 	}
 
 	return nil

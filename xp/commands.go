@@ -11,7 +11,7 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-const defaultRoleFile string = "autoRanks.json"
+const RoleFile string = "autoRanks.json"
 
 // Execute is the method used to run the correct method based on user input.
 func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
@@ -23,12 +23,12 @@ func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
 	switch req[1] {
 	case "save":
 		// DefaultFile is declared in xp/xp.go
-		if err := x.saveXP(DefaultFile); err != nil {
+		if err := x.saveXP(XpFile); err != nil {
 			return "", err
 		}
 		return "XP data saved!", nil
 	case "aar":
-		return x.addAutoRank(defaultRoleFile, req[2], req[3])
+		return x.addAutoRank(RoleFile, req[2], req[3])
 	}
 	return x.returnXp(req, msg)
 }

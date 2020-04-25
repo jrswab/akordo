@@ -39,9 +39,15 @@ func main() {
 	sd := controller.NewSessionData(sess)
 
 	// Load saved XP data into the struct created by NewSessionData
-	if _, err := os.Stat(xp.DefaultFile); err == nil {
-		if err := sd.XP.LoadXP(xp.DefaultFile); err != nil {
-			log.Printf("error loading xp data: %s", err)
+	if _, err := os.Stat(xp.XpFile); err == nil {
+		if err := sd.XP.LoadXP(xp.XpFile); err != nil {
+			log.Fatalf("error loading xp data file: %s", err)
+		}
+	}
+	// Load saved role data into the struct created by NewSessionData
+	if _, err := os.Stat(xp.RoleFile); err == nil {
+		if err := sd.XP.LoadAutoRanks(xp.RoleFile); err != nil {
+			log.Fatalf("error loading role file: %s", err)
 		}
 	}
 
@@ -62,7 +68,7 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
-	// Save data
+	// Save data on exit
 	sd.XP.ManipulateXP("save", &discordgo.MessageCreate{})
 
 	// Close the session

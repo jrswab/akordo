@@ -63,7 +63,7 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 		// Check for role promotion
 		err := sd.XP.AutoPromote(msg)
 		if err != nil {
-			log.Println(err)
+			log.Printf("xp.AutoPromote failed: %s", err)
 		}
 		return
 	}

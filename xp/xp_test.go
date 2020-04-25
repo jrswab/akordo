@@ -28,12 +28,11 @@ func TestNewXpStore(t *testing.T) {
 			name: "Create default xpStore",
 			args: args{testMutex, testSession},
 			want: &System{
-				data:        &xpData{Users: make(map[string]float64)},
-				mutex:       testMutex,
-				dgs:         testSession,
-				callRec:     p.NewRecorder(),
-				defaultFile: DefaultFile,
-				tiers:       &autoRanks{Tiers: make(map[string]float64)},
+				data:    &xpData{Users: make(map[string]float64)},
+				mutex:   testMutex,
+				dgs:     testSession,
+				callRec: p.NewRecorder(),
+				tiers:   &autoRanks{Tiers: make(map[string]float64)},
 			},
 		},
 	}
@@ -294,12 +293,11 @@ func TestSystem_AutoPromote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			x := &System{
-				data:        tt.fields.data,
-				tiers:       tt.fields.tiers,
-				defaultFile: tt.fields.defaultFile,
-				callRec:     tt.fields.callRec,
-				mutex:       tt.fields.mutex,
-				dgs:         tt.fields.dgs,
+				data:    tt.fields.data,
+				tiers:   tt.fields.tiers,
+				callRec: tt.fields.callRec,
+				mutex:   tt.fields.mutex,
+				dgs:     tt.fields.dgs,
 			}
 			if err := x.AutoPromote(tt.args.msg); (err != nil) != tt.wantErr {
 				t.Errorf("System.AutoPromote() error = %v, wantErr %v", err, tt.wantErr)
