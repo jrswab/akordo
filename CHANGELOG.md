@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The roles package.
+- Comments for context in xp/commands.go
+- Bot owner check for xp add auto role command
+- selfAssignRoles.json to .gitignore
+- The embed massage type to contoller/controller.go
+
+### Changed
+- This file.
+- File name variable for xp auto rank json
+
 ## v0.7.0
 ### Added
 - XP system

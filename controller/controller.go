@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~jrswab/akordo/plugins"
 	plugs "git.sr.ht/~jrswab/akordo/plugins"
+	"git.sr.ht/~jrswab/akordo/roles"
 	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 )
@@ -19,7 +20,9 @@ type SessionData struct {
 	Mutex   *sync.Mutex
 	prefix  string
 	XP      xp.Exp
+	Roles   roles.Assigner
 
+	// Plugins:
 	crypto      *plugins.Crypto
 	gifRequest  *plugs.GifRequest
 	memeRequest *plugs.MemeRequest
@@ -34,6 +37,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 		Mutex:   &sync.Mutex{},
 		prefix:  `=`,
 
+		// Plugins:
 		crypto:      plugs.NewCrypto(),
 		gifRequest:  plugs.NewGifRequest(),
 		memeRequest: plugs.NewMemeRequest(),
@@ -41,6 +45,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 		r34Request:  plugs.NewRule34Request(),
 	}
 	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
+	sd.Roles = roles.NewRoleStorage(sd.session)
 	return sd
 }
 
@@ -81,6 +86,7 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	var (
 		res     string
 		msgType string
+		emb     *dg.MessageEmbed
 		err     error
 	)
 
@@ -99,35 +105,40 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		res, err = sd.memeRequest.RequestMeme(req, sd.session, msg)
 	case sd.prefix + "ping":
 		res = sd.pingRecord.Pong(msg)
+	case sd.prefix + "roles":
+		msgType = "embed"
+		emb, err = sd.Roles.ExecuteRoleCommands(req, msg)
 	case sd.prefix + "rule34":
 		res, err = sd.r34Request.Rule34(req, sd.session, msg)
 	case sd.prefix + "xp":
 		res, err = sd.XP.Execute(req, msg)
+	default:
+		res = "I don't know what to do with that :sob:"
 	}
-
-	sd.Reply(res, msgType, err, msg)
-}
-
-// Reply takes the executed data and replies to the user. This is either in the channel
-// where the command was sent or as a direct message to the user.
-func (sd *SessionData) Reply(res, msgType string, err error, msg *dg.MessageCreate) {
-	s := sd.session
 
 	if err != nil {
 		log.Printf("error executing task: %s", err)
 		return
 	}
 
-	if res == "" {
-		return
-	}
+	sd.Reply(res, msgType, emb, msg)
+}
+
+// Reply takes the executed data and replies to the user. This is either in the channel
+// where the command was sent or as a direct message to the user.
+func (sd *SessionData) Reply(res, msgType string, emb *dg.MessageEmbed, msg *dg.MessageCreate) {
+	s := sd.session
 
 	switch msgType {
 	case "dm":
 		sd.sendAsDM(res, msg)
-	//case "embed":
+	case "embed":
+		_, err := s.ChannelMessageSendEmbed(msg.ChannelID, emb)
+		if err != nil {
+			log.Printf("session.ChannelMessageSendEmbed failed: %s", err)
+		}
 	default:
-		_, err = s.ChannelMessageSend(msg.ChannelID, res)
+		_, err := s.ChannelMessageSend(msg.ChannelID, res)
 		if err != nil {
 			log.Printf("session.ChannelMessageSend failed: %s", err)
 		}
@@ -148,8 +159,4 @@ func (sd *SessionData) sendAsDM(res string, msg *dg.MessageCreate) {
 		log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
 	}
 	return
-}
-
-func (sd *SessionData) sendAsEmbed() {
-
 }

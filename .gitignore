@@ -9,6 +9,7 @@
 akordo*
 xp.json
 autoRanks.json
+selfAssignRoles.json
 
 # Test binary, built with `go test -c`
 *.test

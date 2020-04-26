@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -11,7 +12,8 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-const RoleFile string = "autoRanks.json"
+// AutoRankFile is the default file for loading and saving auto promote ranks
+const AutoRankFile string = "autoRanks.json"
 
 // Execute is the method used to run the correct method based on user input.
 func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
@@ -27,8 +29,16 @@ func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
 			return "", err
 		}
 		return "XP data saved!", nil
-	case "aar":
-		return x.addAutoRank(RoleFile, req[2], req[3])
+	case "aar": // add auto rank
+		ownerID, found := os.LookupEnv("BOT_OWNER")
+		if !found {
+			return "", fmt.Errorf(
+				"XP Execute failed: \"BOT_OWNER\" environment variable not found",
+			)
+		}
+		if msg.Author.ID == ownerID {
+			return x.addAutoRank(AutoRankFile, req[2], req[3])
+		}
 	}
 	return x.returnXp(req, msg)
 }

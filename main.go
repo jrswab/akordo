@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"git.sr.ht/~jrswab/akordo/controller"
+	"git.sr.ht/~jrswab/akordo/roles"
 	"git.sr.ht/~jrswab/akordo/xp"
 	"github.com/bwmarrin/discordgo"
 )
@@ -45,8 +46,14 @@ func main() {
 		}
 	}
 	// Load saved role data into the struct created by NewSessionData
-	if _, err := os.Stat(xp.RoleFile); err == nil {
-		if err := sd.XP.LoadAutoRanks(xp.RoleFile); err != nil {
+	if _, err := os.Stat(xp.AutoRankFile); err == nil {
+		if err := sd.XP.LoadAutoRanks(xp.AutoRankFile); err != nil {
+			log.Fatalf("error loading role file: %s", err)
+		}
+	}
+	// Load saved self assign role data into the struct created by NewSessionData
+	if _, err := os.Stat(roles.SelfAssignFile); err == nil {
+		if err := sd.Roles.LoadSelfAssignRoles(roles.SelfAssignFile); err != nil {
 			log.Fatalf("error loading role file: %s", err)
 		}
 	}
