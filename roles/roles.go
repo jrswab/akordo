@@ -12,6 +12,13 @@ import (
 // SelfAssignFile is the path were tha self assign role data is located
 const SelfAssignFile string = "selfAssignRoles.json"
 
+// DgSession is the interface for mocking the discordgo session functions in this package.
+type DgSession interface {
+	GuildRoles(guildID string) (st []*dg.Role, err error)
+	GuildMemberRoleAdd(guildID string, userID string, roleID string) (err error)
+	GuildMemberRoleRemove(guildID string, userID string, roleID string) (err error)
+}
+
 // Assigner is the interface for interacting with the roleAction methods
 type Assigner interface {
 	ExecuteRoleCommands(req []string, msg *dg.MessageCreate) (*dg.MessageEmbed, error)
