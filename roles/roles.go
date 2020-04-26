@@ -25,7 +25,7 @@ type Assigner interface {
 	LoadSelfAssignRoles(file string) error
 }
 type roleSystem struct {
-	dgs *dg.Session
+	dgs DgSession
 	sar *roleStorage
 }
 
@@ -94,7 +94,7 @@ func (r *roleSystem) addSelfAssignments(file string, req []string, msg *dg.Messa
 
 	// Make sure the bot owner is running the command
 	if msg.Author.ID != ownerID {
-		return nil, nil
+		return nil, fmt.Errorf("addSelfAssignments executor is not the bot owner")
 	}
 
 	// Tell the user how to use the command if the command is too short
