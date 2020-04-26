@@ -67,6 +67,9 @@ func (r *roleSystem) ExecuteRoleCommands(req []string, msg *dg.MessageCreate) (*
 		return r.assignRole(req, msg)
 	case "uar":
 		return r.unassignRole(req, msg)
+	default:
+		notListed := "I don't know what to do :thinking:"
+		embed.Description = fmt.Sprintf("%s\nPlease check the command and try again", notListed)
 	}
 	return embed, nil
 }
@@ -151,21 +154,7 @@ func (r *roleSystem) listSelfAssignRoles() (*dg.MessageEmbed, error) {
 
 func (r *roleSystem) assignRole(req []string, msg *dg.MessageCreate) (*dg.MessageEmbed, error) {
 	embed := &dg.MessageEmbed{}
-	// Create a new string if the role has spaces
-	sarName := req[2]
-	if len(req) > 3 {
-		for _, word := range req[3:] {
-			sarName = fmt.Sprintf("%s %s", sarName, word)
-		}
-	}
-
-	var sarID string
-	for role, id := range r.sar.SelfRoles {
-		if sarName == role {
-			sarID = id
-			break
-		}
-	}
+	sarName, sarID := r.findRequestedRole(req)
 
 	if sarID == "" {
 		embed.Description = fmt.Sprintf("Sorry, the role, %s, is not self assignable", sarName)
@@ -183,6 +172,23 @@ func (r *roleSystem) assignRole(req []string, msg *dg.MessageCreate) (*dg.Messag
 
 func (r *roleSystem) unassignRole(req []string, msg *dg.MessageCreate) (*dg.MessageEmbed, error) {
 	embed := &dg.MessageEmbed{}
+	sarName, sarID := r.findRequestedRole(req)
+
+	if sarID == "" {
+		embed.Description = fmt.Sprintf("Sorry, the role, %s, is not self removable", sarName)
+		return embed, nil
+	}
+
+	err := r.dgs.GuildMemberRoleRemove(msg.GuildID, msg.Author.ID, sarID)
+	if err != nil {
+		return nil, fmt.Errorf("dg method GuildMemberRoleAdd failed: %s", err)
+	}
+
+	embed.Description = fmt.Sprintf("Removed role, %s, from %s", sarName, msg.Author.Username)
+	return embed, nil
+}
+
+func (r *roleSystem) findRequestedRole(req []string) (string, string) {
 	// Create a new string if the role has spaces
 	sarName := req[2]
 	if len(req) > 3 {
@@ -198,17 +204,5 @@ func (r *roleSystem) unassignRole(req []string, msg *dg.MessageCreate) (*dg.Mess
 			break
 		}
 	}
-
-	if sarID == "" {
-		embed.Description = fmt.Sprintf("Sorry, the role, %s, is not self removable", sarName)
-		return embed, nil
-	}
-
-	err := r.dgs.GuildMemberRoleRemove(msg.GuildID, msg.Author.ID, sarID)
-	if err != nil {
-		return nil, fmt.Errorf("dg method GuildMemberRoleAdd failed: %s", err)
-	}
-
-	embed.Description = fmt.Sprintf("Removed role, %s, from %s", sarName, msg.Author.Username)
-	return embed, nil
+	return sarName, sarID
 }
