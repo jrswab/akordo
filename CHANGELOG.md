@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - This file.
 - File name variable for xp auto rank json
+- load data statements into their own function in main.go
 
 ## v0.7.0
 ### Added

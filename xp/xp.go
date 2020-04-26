@@ -77,6 +77,7 @@ func (x *System) LoadXP(file string) error {
 // data after startup.
 func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	x.mutex.Lock()
+	defer x.mutex.Unlock()
 
 	switch action {
 	case "addMessagePoints":
@@ -84,8 +85,6 @@ func (x *System) ManipulateXP(action string, msg *dg.MessageCreate) {
 	case "save":
 		x.saveXP(XpFile)
 	}
-
-	x.mutex.Unlock()
 }
 
 // AwardXP stores the earned experience into the DataStore struct.

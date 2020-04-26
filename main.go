@@ -21,24 +21,7 @@ func init() {
 	flag.Parse()
 }
 
-func main() {
-	// If token is not passed by -t check for and environment variable
-	if token == "" {
-		var found bool
-		token, found = os.LookupEnv("BOT_TOKEN")
-		if !found {
-			log.Fatalf("Please pass in your bot token with -t or set the \"BOT_TOKEN\" environment variable.")
-		}
-	}
-
-	sess, err := discordgo.New("Bot " + token)
-	if err != nil {
-		log.Fatalf("Session creation error: %s", err)
-	}
-
-	// Create a the custom controller to pass data to ReceiveMessage and the plugins
-	sd := controller.NewSessionData(sess)
-
+func loadSavedData(sd *controller.SessionData) {
 	// Load saved XP data into the struct created by NewSessionData
 	if _, err := os.Stat(xp.XpFile); err == nil {
 		if err := sd.XP.LoadXP(xp.XpFile); err != nil {
@@ -57,6 +40,27 @@ func main() {
 			log.Fatalf("error loading role file: %s", err)
 		}
 	}
+}
+
+func main() {
+	// If token is not passed by -t check for and environment variable
+	if token == "" {
+		var found bool
+		token, found = os.LookupEnv("BOT_TOKEN")
+		if !found {
+			log.Fatalf("Please pass in your bot token with -t or set the \"BOT_TOKEN\" environment variable.")
+		}
+	}
+
+	sess, err := discordgo.New("Bot " + token)
+	if err != nil {
+		log.Fatalf("Session creation error: %s", err)
+	}
+
+	// Create a the custom controller to pass data to ReceiveMessage and the plugins
+	sd := controller.NewSessionData(sess)
+
+	loadSavedData(sd)
 
 	// start the Goroutine to automatically save earned XP
 	go sd.XP.AutoSaveXP()
