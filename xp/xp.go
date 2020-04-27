@@ -139,7 +139,7 @@ func (x *System) saveXP(file string) error {
 func checkBotID() string {
 	// Ignoring second value in case the bot owner wants to allow
 	// the bot to gain experience.
-	botID, _ := os.LookupEnv("BOT_TOKEN")
+	botID, _ := os.LookupEnv("BOT_ID")
 	return botID
 }
 

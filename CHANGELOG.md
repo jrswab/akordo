@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Clear command to clear messages of the bot or a user for the past 100 messages.
+- Deletion of send command message after the bot returns the request
+
+### Changed
+
+### Fixed
+- Bug where xp was looking at the bot token instead of the bot ID environment variable.
+
 ## v0.8.0
 ### Added
 - The roles package.

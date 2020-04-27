@@ -23,6 +23,7 @@ type SessionData struct {
 	Roles   roles.Assigner
 
 	// Plugins:
+	clear       plugs.Eraser
 	crypto      *plugins.Crypto
 	gifRequest  *plugs.GifRequest
 	memeRequest *plugs.MemeRequest
@@ -46,6 +47,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 	}
 	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
 	sd.Roles = roles.NewRoleStorage(sd.session)
+	sd.clear = plugs.NewEraser(sd.session)
 	return sd
 }
 
@@ -74,6 +76,10 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	}
 
 	sd.ExecuteTask(msg)
+	err := sd.session.ChannelMessageDelete(msg.ChannelID, msg.ID)
+	if err != nil {
+		log.Printf("failed to delete message after bot reply: %s", err)
+	}
 }
 
 // ExecuteTask looks up the command found by the bot and kicks off a Goroutine do what
@@ -84,16 +90,19 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 // If the plugin is new create a new `.go` file under the `plugins` directory.
 func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	var (
-		res     string
-		msgType string
-		emb     *dg.MessageEmbed
-		err     error
+		res string
+		emb *dg.MessageEmbed
+		err error
 	)
 
 	// Split the string to a slice to parse parameters
 	req := strings.Split(msg.Content, " ")
 
+	msgType := "chan"
 	switch req[0] {
+	case sd.prefix + "clear":
+		msgType = "none"
+		err = sd.clear.ClearHandler(req, msg)
 	case sd.prefix + "crypto":
 		res, err = sd.crypto.Game(req, msg)
 	case sd.prefix + "gif":
@@ -137,7 +146,7 @@ func (sd *SessionData) Reply(res, msgType string, emb *dg.MessageEmbed, msg *dg.
 		if err != nil {
 			log.Printf("session.ChannelMessageSendEmbed failed: %s", err)
 		}
-	default:
+	case "chan":
 		_, err := s.ChannelMessageSend(msg.ChannelID, res)
 		if err != nil {
 			log.Printf("session.ChannelMessageSend failed: %s", err)
