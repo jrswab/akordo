@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"git.sr.ht/~jrswab/akordo/plugins"
 	plugs "git.sr.ht/~jrswab/akordo/plugins"
 	"git.sr.ht/~jrswab/akordo/roles"
 	"git.sr.ht/~jrswab/akordo/xp"
@@ -16,15 +15,16 @@ import (
 
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
-	session *dg.Session
-	Mutex   *sync.Mutex
-	prefix  string
-	XP      xp.Exp
-	Roles   roles.Assigner
+	session   *dg.Session
+	Mutex     *sync.Mutex
+	prefix    string
+	XP        xp.Exp
+	Roles     roles.Assigner
+	Blacklist *plugs.Blacklist
 
 	// Plugins:
 	clear       plugs.Eraser
-	crypto      *plugins.Crypto
+	crypto      *plugs.Crypto
 	gifRequest  *plugs.GifRequest
 	memeRequest *plugs.MemeRequest
 	pingRecord  *plugs.Record
@@ -48,18 +48,32 @@ func NewSessionData(s *dg.Session) *SessionData {
 	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
 	sd.Roles = roles.NewRoleStorage(sd.session)
 	sd.clear = plugs.NewEraser(sd.session)
+	sd.Blacklist = plugs.NewBlacklist(sd.session)
 	return sd
 }
 
 // NewMessage waits for a ne message to be sent in a the Discord guild
 // This kicks off a Goroutine to free up the mutex set by discordgo `AddHandler` method.
 func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
-	go sd.checkSyntax(msg)
+	go sd.checkMessage(msg)
 }
 
 // CheckSyntax uses regexp from the standard library to check the message has the correct
 // prefix as defined by the `prefix` constant.
-func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
+func (sd *SessionData) checkMessage(msg *dg.MessageCreate) {
+	// Check for blacklisted words
+	isBlacklisted, err := sd.Blacklist.CheckBannedWords(msg)
+	if err != nil {
+		log.Printf("CheckBannedWords() failed: %s", err)
+	}
+	if isBlacklisted {
+		reason := "Kicked for inappropriate language."
+		err := sd.session.GuildMemberDeleteWithReason(msg.GuildID, msg.Author.ID, reason)
+		if err != nil {
+			log.Printf("GuildMemberDeleteWithReason() failed: %s", err)
+		}
+	}
+
 	// Make sure the message matches the bot syntax
 	regEx := fmt.Sprintf("(?m)^%s(\\w|\\s)+", sd.prefix)
 	var re = regexp.MustCompile(regEx)
@@ -76,7 +90,9 @@ func (sd *SessionData) checkSyntax(msg *dg.MessageCreate) {
 	}
 
 	sd.ExecuteTask(msg)
-	err := sd.session.ChannelMessageDelete(msg.ChannelID, msg.ID)
+
+	// Remove bot command after the bot replies
+	err = sd.session.ChannelMessageDelete(msg.ChannelID, msg.ID)
 	if err != nil {
 		log.Printf("failed to delete message after bot reply: %s", err)
 	}
@@ -100,9 +116,11 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 
 	msgType := "chan"
 	switch req[0] {
+	case sd.prefix + "blacklist":
+		res, err = sd.Blacklist.Handler(req, msg)
 	case sd.prefix + "clear":
 		msgType = "none"
-		err = sd.clear.ClearHandler(req, msg)
+		err = sd.clear.ClearHandler(msg)
 	case sd.prefix + "crypto":
 		res, err = sd.crypto.Game(req, msg)
 	case sd.prefix + "gif":
@@ -130,12 +148,12 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		return
 	}
 
-	sd.Reply(res, msgType, emb, msg)
+	sd.reply(res, msgType, emb, msg)
 }
 
 // Reply takes the executed data and replies to the user. This is either in the channel
 // where the command was sent or as a direct message to the user.
-func (sd *SessionData) Reply(res, msgType string, emb *dg.MessageEmbed, msg *dg.MessageCreate) {
+func (sd *SessionData) reply(res, msgType string, emb *dg.MessageEmbed, msg *dg.MessageCreate) {
 	s := sd.session
 
 	switch msgType {
@@ -144,12 +162,12 @@ func (sd *SessionData) Reply(res, msgType string, emb *dg.MessageEmbed, msg *dg.
 	case "embed":
 		_, err := s.ChannelMessageSendEmbed(msg.ChannelID, emb)
 		if err != nil {
-			log.Printf("session.ChannelMessageSendEmbed failed: %s", err)
+			log.Printf("reply ChannelMessageSendEmbed failed: %s", err)
 		}
 	case "chan":
 		_, err := s.ChannelMessageSend(msg.ChannelID, res)
 		if err != nil {
-			log.Printf("session.ChannelMessageSend failed: %s", err)
+			log.Printf("reply ChannelMessageSend failed: %s", err)
 		}
 	}
 }

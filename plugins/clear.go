@@ -10,7 +10,7 @@ import (
 
 // Eraser is the interface for interacting with the clear package.
 type Eraser interface {
-	ClearHandler(req []string, msg *dg.MessageCreate) error
+	ClearHandler(msg *dg.MessageCreate) error
 }
 
 type clear struct {
@@ -23,7 +23,7 @@ func NewEraser(s *dg.Session) Eraser {
 }
 
 // ClearHandler controls what method is triggered based on the user's command.
-func (c *clear) ClearHandler(req []string, msg *dg.MessageCreate) error {
+func (c *clear) ClearHandler(msg *dg.MessageCreate) error {
 	botID, _ := os.LookupEnv("BOT_ID")
 	err := c.clearMSGs(botID, msg)
 	if err != nil {
