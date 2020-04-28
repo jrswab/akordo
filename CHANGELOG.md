@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clear command to clear messages of the bot or a user for the past 100 messages.
 - Deletion of command message after the bot returns the request
 - The ability to add banned words.
-- bannedWords.json to .gitignore
+- `bannedWords.json` to `.gitignore`
 - Removal of user from the guild when a blacklisted word is used.
 - Rule agreement command to give users a role to chat after reading the rules.
 - A command to see an XP leader board
@@ -18,12 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Controller.go `msgType` to be "chan" by default.
 - `checkSyntax()` to `checkMessage()`
-- the controller reply method to be unexported
-- saved data file location to the `data` directory
+- The controller reply method to be unexported
+- Saved data file location to the `data` directory
 - `.gitignore` to ignore the new data directory
-- `AkSession` to be located in plugins.go
+- AkSession interface to be located in `plugins.go`
 - `loadSavedData()` to it's own package: `load.SavedData()`
-- Bot check in xp.go to check the message bot bool instead of checking an ID
+- Bot check in `xp.go` to check the message bot bool instead of checking an ID
+- `xp/commands_test.go` to use `reflect.DeepEqual()`
 
 ### Fixed
 - Bug where xp was looking at the bot token instead of the bot ID environment variable.
