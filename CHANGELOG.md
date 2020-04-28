@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.gitignore` to ignore the new data directory
 - `AkSession` to be located in plugins.go
 - `loadSavedData()` to it's own package: `load.SavedData()`
+- Bot check in xp.go to check the message bot bool instead of checking an ID
 
 ### Fixed
 - Bug where xp was looking at the bot token instead of the bot ID environment variable.

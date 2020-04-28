@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"sync"
 	"time"
 
@@ -93,8 +92,7 @@ func (x *System) awardActivity(msg *dg.MessageCreate) {
 	user := msg.Author.ID
 
 	// Don't award points to the bot
-	// Set `BOT_ID` as an environment variable to exclude the bot.
-	if user == checkBotID() {
+	if msg.Author.Bot {
 		return
 	}
 
@@ -134,13 +132,6 @@ func (x *System) saveXP(file string) error {
 		return err
 	}
 	return nil
-}
-
-func checkBotID() string {
-	// Ignoring second value in case the bot owner wants to allow
-	// the bot to gain experience.
-	botID, _ := os.LookupEnv("BOT_ID")
-	return botID
 }
 
 // AutoPromote checks the user's current XP after each messag sent
