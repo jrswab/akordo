@@ -12,11 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The ability to add banned words.
 - bannedWords.json to .gitignore
 - Removal of user from the guild when a blacklisted word is used.
+- Rule agreement command to give users a role to chat after reading the rules.
 
 ### Changed
 - Controller.go `msgType` to be "chan" by default.
 - `checkSyntax()` to `checkMessage()`
 - the controller reply method to be unexported
+- saved data file location to the `data` directory
+- `.gitignore` to ignore the new data directory
+- `AkSession` to be located in plugins.go
+- `loadSavedData()` to it's own package: `load.SavedData()`
 
 ### Fixed
 - Bug where xp was looking at the bot token instead of the bot ID environment variable.

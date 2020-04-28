@@ -34,3 +34,17 @@ func (_m *AkSession) Channel(channelID string) (*discordgo.Channel, error) {
 
 	return r0, r1
 }
+
+// GuildMemberRoleAdd provides a mock function with given fields: guildID, userID, roleID
+func (_m *AkSession) GuildMemberRoleAdd(guildID string, userID string, roleID string) error {
+	ret := _m.Called(guildID, userID, roleID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(guildID, userID, roleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}

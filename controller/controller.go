@@ -15,20 +15,21 @@ import (
 
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
-	session   *dg.Session
-	Mutex     *sync.Mutex
-	prefix    string
-	XP        xp.Exp
-	Roles     roles.Assigner
-	Blacklist *plugs.Blacklist
+	session *dg.Session
+	Mutex   *sync.Mutex
+	prefix  string
+	XP      xp.Exp
+	Roles   roles.Assigner
 
 	// Plugins:
+	Blacklist   *plugs.Blacklist
 	clear       plugs.Eraser
 	crypto      *plugs.Crypto
 	gifRequest  *plugs.GifRequest
 	memeRequest *plugs.MemeRequest
 	pingRecord  *plugs.Record
 	r34Request  *plugs.Rule34Request
+	Rules       *plugs.Agreement
 }
 
 // NewSessionData creates a SessionData
@@ -45,10 +46,14 @@ func NewSessionData(s *dg.Session) *SessionData {
 		pingRecord:  plugs.NewRecorder(),
 		r34Request:  plugs.NewRule34Request(),
 	}
+
+	// Commands that require the session for execution
 	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
 	sd.Roles = roles.NewRoleStorage(sd.session)
 	sd.clear = plugs.NewEraser(sd.session)
 	sd.Blacklist = plugs.NewBlacklist(sd.session)
+	sd.Rules = plugs.NewAgreement(sd.session)
+
 	return sd
 }
 
@@ -137,6 +142,8 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		emb, err = sd.Roles.ExecuteRoleCommands(req, msg)
 	case sd.prefix + "rule34":
 		res, err = sd.r34Request.Rule34(req, sd.session, msg)
+	case sd.prefix + "rules":
+		res, err = sd.Rules.Handler(req, msg)
 	case sd.prefix + "xp":
 		res, err = sd.XP.Execute(req, msg)
 	default:

@@ -13,7 +13,7 @@ import (
 )
 
 // XpFile is the path where the xp data is saved.
-const XpFile string = "xp.json"
+const XpFile string = "data/xp.json"
 const messagePoints float64 = 0.01
 
 // AkSession allows for tests to mock discordgo session method calls

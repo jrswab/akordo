@@ -10,7 +10,7 @@ import (
 )
 
 // SelfAssignFile is the path were tha self assign role data is located
-const SelfAssignFile string = "selfAssignRoles.json"
+const SelfAssignFile string = "data/selfAssignRoles.json"
 
 // DgSession is the interface for mocking the discordgo session functions in this package.
 type DgSession interface {

@@ -7,10 +7,7 @@
 
 # Project generated files
 akordo*
-xp.json
-autoRanks.json
-selfAssignRoles.json
-bannedWords.json
+data/
 
 # Test binary, built with `go test -c`
 *.test

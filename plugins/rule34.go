@@ -11,11 +11,6 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-// AkSession allows for tests to mock the discordgo session.Channel() method call
-type AkSession interface {
-	Channel(channelID string) (st *dg.Channel, err error)
-}
-
 type rule34XML struct {
 	Count string `xml:"count,attr"`
 	Post  []struct {

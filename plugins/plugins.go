@@ -7,6 +7,12 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
+// AkSession allows for tests to mock the discordgo session.Channel() method call
+type AkSession interface {
+	Channel(channelID string) (st *dg.Channel, err error)
+	GuildMemberRoleAdd(guildID, userID, roleID string) (err error)
+}
+
 // Record holds the users last gif request to avoid spamming.
 type Record struct {
 	MinWaitTime time.Duration

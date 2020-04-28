@@ -13,7 +13,7 @@ import (
 )
 
 // AutoRankFile is the default file for loading and saving auto promote ranks
-const AutoRankFile string = "autoRanks.json"
+const AutoRankFile string = "data/autoRanks.json"
 
 // Execute is the method used to run the correct method based on user input.
 func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
