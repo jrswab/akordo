@@ -2,6 +2,7 @@ package xp
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"sync"
 	"testing"
@@ -189,7 +190,7 @@ func TestSystem_Execute(t *testing.T) {
 				t.Errorf("System.Execute() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("System.Execute() = %v, want %v", got, tt.want)
 			}
 		})
