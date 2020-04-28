@@ -28,7 +28,7 @@ type Exp interface {
 	LoadXP(file string) error
 	ManipulateXP(action string, msg *dg.MessageCreate)
 	AutoSaveXP()
-	Execute(req []string, msg *dg.MessageCreate) (string, error)
+	Execute(req []string, msg *dg.MessageCreate) (MsgEmbed, error)
 	AutoPromote(msg *dg.MessageCreate) error
 	LoadAutoRanks(file string) error
 }

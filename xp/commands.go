@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -15,8 +17,11 @@ import (
 // AutoRankFile is the default file for loading and saving auto promote ranks
 const AutoRankFile string = "data/autoRanks.json"
 
+// MsgEmbed is used to shorten the name of the original embed type from discordGo
+type MsgEmbed *dg.MessageEmbed
+
 // Execute is the method used to run the correct method based on user input.
-func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
+func (x *System) Execute(req []string, msg *dg.MessageCreate) (MsgEmbed, error) {
 	// When user runs the xp command with alone return that user's XP
 	if len(req) < 2 {
 		return x.userXp("", "", msg)
@@ -26,25 +31,27 @@ func (x *System) Execute(req []string, msg *dg.MessageCreate) (string, error) {
 	case "save":
 		// DefaultFile is declared in xp/xp.go
 		if err := x.saveXP(XpFile); err != nil {
-			return "", err
+			return nil, err
 		}
-		return "XP data saved!", nil
+		return &dg.MessageEmbed{Description: "XP data saved!"}, nil
 	case "aar": // add auto rank
 		ownerID, found := os.LookupEnv("BOT_OWNER")
 		if !found {
-			return "", fmt.Errorf(
+			return nil, fmt.Errorf(
 				"XP Execute failed: \"BOT_OWNER\" environment variable not found",
 			)
 		}
 		if msg.Author.ID == ownerID {
 			return x.addAutoRank(AutoRankFile, req[2], req[3])
 		}
+	case "lb":
+		return x.leaderBoard(msg)
 	}
 	return x.returnXp(req, msg)
 }
 
 // ReturnXp checks the user's request and returns xp data based on the command entered.
-func (x *System) returnXp(req []string, msg *dg.MessageCreate) (string, error) {
+func (x *System) returnXp(req []string, msg *dg.MessageCreate) (MsgEmbed, error) {
 	var id, user string
 	regEx := fmt.Sprintf("(?m)^<@!\\w+>")
 	var re = regexp.MustCompile(regEx)
@@ -55,7 +62,7 @@ func (x *System) returnXp(req []string, msg *dg.MessageCreate) (string, error) {
 
 		member, err := x.dgs.GuildMember(msg.GuildID, id)
 		if err != nil {
-			return "", fmt.Errorf("returnXP() call to GuildMember returned: %s", err)
+			return nil, fmt.Errorf("returnXP() call to GuildMember returned: %s", err)
 		}
 
 		return x.userXp(member.User.Username, id, msg)
@@ -71,18 +78,18 @@ func (x *System) returnXp(req []string, msg *dg.MessageCreate) (string, error) {
 		}
 		id, err := x.findUserID(user, msg)
 		if err != nil {
-			return "", fmt.Errorf("findUserID error: %s", err)
+			return nil, fmt.Errorf("findUserID error: %s", err)
 		}
 		return x.userXp(user, id, msg)
 	}
 
-	return "User not found :thinking:", nil
+	return &dg.MessageEmbed{Description: "User not found..."}, nil
 }
 
-func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (string, error) {
+func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (MsgEmbed, error) {
 	alertUser, tooSoon := x.callRec.CheckLastAsk(msg)
 	if tooSoon {
-		return alertUser, nil
+		return &dg.MessageEmbed{Description: alertUser}, nil
 	}
 
 	if userID == "" {
@@ -95,10 +102,10 @@ func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (string, err
 
 	xp, ok := x.data.Users[userID]
 	if !ok {
-		return fmt.Sprintf("%s has not earned any XP", name), nil
+		return &dg.MessageEmbed{Description: fmt.Sprintf("%s has not earned any XP", name)}, nil
 	}
 
-	return fmt.Sprintf("%s has a total of %.2f xp", name, xp), nil
+	return &dg.MessageEmbed{Description: fmt.Sprintf("%s has a total of %.2f xp", name, xp)}, nil
 }
 
 func (x *System) findUserID(userName string, msg *dg.MessageCreate) (string, error) {
@@ -146,20 +153,21 @@ type autoRanks struct {
 	Tiers map[string]float64 `json:"tiers"` // map of total xp of role IDs
 }
 
-func (x *System) addAutoRank(file, roleName, minXP string) (string, error) {
+func (x *System) addAutoRank(file, roleName, minXP string) (MsgEmbed, error) {
 	// Command: =xp aar roleName minXP
 	xp, err := strconv.ParseFloat(minXP, 64)
 	if err != nil {
-		return "", fmt.Errorf("addAutoRanks() return: %s", err)
+		return nil, fmt.Errorf("addAutoRanks() return: %s", err)
 	}
 	x.tiers.Tiers[roleName] = xp
 
 	err = x.saveAutoRanks(file)
 	if err != nil {
-		return "", fmt.Errorf("saveAutoRanks failed: %s", err)
+		return nil, fmt.Errorf("saveAutoRanks failed: %s", err)
 	}
 
-	return fmt.Sprintf("Added %s to be awarded at >= %.2f", roleName, xp), nil
+	return &dg.MessageEmbed{
+		Description: fmt.Sprintf("Added %s to be awarded at >= %.2f", roleName, xp)}, nil
 }
 
 // LoadAutoRanks loads the saved xp data from the json file
@@ -189,4 +197,31 @@ func (x *System) saveAutoRanks(file string) error {
 		return err
 	}
 	return nil
+}
+
+func (x *System) leaderBoard(msg *dg.MessageCreate) (MsgEmbed, error) {
+	flippedMap := make(map[float64]string)
+	flipSlice := []float64{}
+	for key, value := range x.data.Users {
+		flipSlice = append(flipSlice, value)
+		flippedMap[value] = key
+	}
+
+	sort.Float64s(flipSlice)
+	totalUsers := len(flipSlice) - 1
+	var top10 string
+	for i := totalUsers; i > (totalUsers - 10); i-- {
+		userID := flippedMap[flipSlice[i]]
+		user, err := x.dgs.GuildMember(msg.GuildID, userID)
+		if err != nil {
+			log.Printf("leaderboard() GuildMember() returned an error: %s", err)
+			continue
+		}
+		top10 = fmt.Sprintf("%s\n%s (%.2f)", top10, user.User.Username, flipSlice[i])
+	}
+	embed := &dg.MessageEmbed{
+		Title:       "Top 10",
+		Description: top10,
+	}
+	return embed, nil
 }

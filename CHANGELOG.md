@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bannedWords.json to .gitignore
 - Removal of user from the guild when a blacklisted word is used.
 - Rule agreement command to give users a role to chat after reading the rules.
+- A command to see an XP leader board
 
 ### Changed
 - Controller.go `msgType` to be "chan" by default.

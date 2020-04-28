@@ -145,7 +145,8 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	case sd.prefix + "rules":
 		res, err = sd.Rules.Handler(req, msg)
 	case sd.prefix + "xp":
-		res, err = sd.XP.Execute(req, msg)
+		msgType = "embed"
+		emb, err = sd.XP.Execute(req, msg)
 	default:
 		res = "I don't know what to do with that :sob:"
 	}

@@ -67,7 +67,7 @@ func TestSystem_Execute(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    string
+		want    MsgEmbed
 		wantErr bool
 	}{
 		{
@@ -83,7 +83,7 @@ func TestSystem_Execute(t *testing.T) {
 				req: []string{"=xp", "save"},
 				msg: &dg.MessageCreate{},
 			},
-			want:    "XP data saved!",
+			want:    &dg.MessageEmbed{Description: "XP data saved!"},
 			wantErr: false,
 		},
 		{
@@ -106,7 +106,7 @@ func TestSystem_Execute(t *testing.T) {
 					},
 				},
 			},
-			want:    fmt.Sprintf("%s has a total of %.2f xp", "jrswab", 5.56),
+			want:    &dg.MessageEmbed{Description: fmt.Sprintf("%s has a total of %.2f xp", "jrswab", 5.56)},
 			wantErr: false,
 		},
 		{
@@ -130,7 +130,7 @@ func TestSystem_Execute(t *testing.T) {
 					},
 				},
 			},
-			want:    fmt.Sprintf("%s has a total of %.2f xp", "jrswab", 5.56),
+			want:    &dg.MessageEmbed{Description: fmt.Sprintf("%s has a total of %.2f xp", "jrswab", 5.56)},
 			wantErr: false,
 		},
 		{
@@ -154,7 +154,7 @@ func TestSystem_Execute(t *testing.T) {
 					},
 				},
 			},
-			want:    fmt.Sprintf("%s has a total of %.2f xp", "jrswab", 5.56),
+			want:    &dg.MessageEmbed{Description: fmt.Sprintf("%s has a total of %.2f xp", "jrswab", 5.56)},
 			wantErr: false,
 		},
 		{
@@ -178,7 +178,7 @@ func TestSystem_Execute(t *testing.T) {
 					},
 				},
 			},
-			want:    "User3 has not earned any XP",
+			want:    &dg.MessageEmbed{Description: "User3 has not earned any XP"},
 			wantErr: false,
 		},
 	}
