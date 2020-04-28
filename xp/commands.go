@@ -208,9 +208,12 @@ func (x *System) leaderBoard(msg *dg.MessageCreate) (MsgEmbed, error) {
 	}
 
 	sort.Float64s(flipSlice)
+
 	totalUsers := len(flipSlice) - 1
+	topStop := totalUsers - 10
 	var top10 string
-	for i := totalUsers; i > (totalUsers - 10); i-- {
+
+	for i := totalUsers; i > topStop; i-- {
 		userID := flippedMap[flipSlice[i]]
 		user, err := x.dgs.GuildMember(msg.GuildID, userID)
 		if err != nil {
@@ -219,9 +222,11 @@ func (x *System) leaderBoard(msg *dg.MessageCreate) (MsgEmbed, error) {
 		}
 		top10 = fmt.Sprintf("%s\n%s (%.2f)", top10, user.User.Username, flipSlice[i])
 	}
+
 	embed := &dg.MessageEmbed{
 		Title:       "Top 10",
 		Description: top10,
 	}
+
 	return embed, nil
 }
