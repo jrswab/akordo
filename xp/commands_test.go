@@ -53,11 +53,10 @@ func TestSystem_Execute(t *testing.T) {
 	mockSess.On("GuildMembers", "1111", "998", 1000).Return(mockMembSlice2, nil)
 
 	type fields struct {
-		data        *xpData
-		callRec     *p.Record
-		mutex       *sync.Mutex
-		dgs         AkSession
-		defaultFile string
+		data    *xpData
+		callRec *p.Record
+		mutex   *sync.Mutex
+		dgs     AkSession
 	}
 	type args struct {
 		req []string
@@ -73,11 +72,10 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "save comand",
 			fields: fields{
-				data:        &xpData{},
-				callRec:     p.NewRecorder(),
-				mutex:       &sync.Mutex{},
-				dgs:         &dg.Session{},
-				defaultFile: "testXP.json",
+				data:    &xpData{},
+				callRec: p.NewRecorder(),
+				mutex:   &sync.Mutex{},
+				dgs:     &dg.Session{},
 			},
 			args: args{
 				req: []string{"=xp", "save"},
@@ -89,11 +87,10 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "xp without params",
 			fields: fields{
-				data:        &xpData{Users: testUsers},
-				callRec:     p.NewRecorder(),
-				mutex:       &sync.Mutex{},
-				dgs:         &dg.Session{},
-				defaultFile: "testXP.json",
+				data:    &xpData{Users: testUsers},
+				callRec: p.NewRecorder(),
+				mutex:   &sync.Mutex{},
+				dgs:     &dg.Session{},
 			},
 			args: args{
 				req: []string{"=xp"},
@@ -112,11 +109,10 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "xp with @username",
 			fields: fields{
-				data:        &xpData{Users: testUsers},
-				callRec:     p.NewRecorder(),
-				mutex:       &sync.Mutex{},
-				dgs:         mockSess,
-				defaultFile: "testXP.json",
+				data:    &xpData{Users: testUsers},
+				callRec: p.NewRecorder(),
+				mutex:   &sync.Mutex{},
+				dgs:     mockSess,
 			},
 			args: args{
 				req: []string{"=xp", "<@!165899680323076097>"},
@@ -136,11 +132,10 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "xp with username and no @",
 			fields: fields{
-				data:        &xpData{Users: testUsers},
-				callRec:     p.NewRecorder(),
-				mutex:       &sync.Mutex{},
-				dgs:         mockSess,
-				defaultFile: "testXP.json",
+				data:    &xpData{Users: testUsers},
+				callRec: p.NewRecorder(),
+				mutex:   &sync.Mutex{},
+				dgs:     mockSess,
 			},
 			args: args{
 				req: []string{"=xp", "jrswab"},
@@ -160,11 +155,10 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "user not found in xp.json file",
 			fields: fields{
-				data:        &xpData{Users: testUsers},
-				callRec:     p.NewRecorder(),
-				mutex:       &sync.Mutex{},
-				dgs:         mockSess,
-				defaultFile: "testXP.json",
+				data:    &xpData{Users: testUsers},
+				callRec: p.NewRecorder(),
+				mutex:   &sync.Mutex{},
+				dgs:     mockSess,
 			},
 			args: args{
 				req: []string{"=xp", "User3"},
