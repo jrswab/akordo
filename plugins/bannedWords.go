@@ -83,9 +83,8 @@ func (b *Blacklist) CheckBannedWords(msg *dg.MessageCreate) (bool, error) {
 }
 
 func (b *Blacklist) addBlacklistWord(req []string, msg *dg.MessageCreate) (string, error) {
-	for _, word := range req[2:] {
-		b.data.Banned[word] = true
-	}
+	word := strings.Join(req[2:], " ")
+	b.data.Banned[word] = true
 
 	err := b.saveWordList(BannedWordsPath)
 	if err != nil {
