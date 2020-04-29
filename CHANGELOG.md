@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## v0.9.1
+## Added
+- `go mod` files
+
 ### Fixed
 - Bot auto promoting itself and other bots based on past XP awarded
 
