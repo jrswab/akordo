@@ -140,6 +140,11 @@ func (x *System) AutoPromote(msg *dg.MessageCreate) error {
 	userID := msg.Author.ID
 	guildID := msg.GuildID
 
+	// If it's a bot; skip promotion
+	if msg.Author.Bot {
+		return nil
+	}
+
 	// Get roles set in the guild (server)
 	roles, err := x.dgs.GuildRoles(guildID)
 	if err != nil {

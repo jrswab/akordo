@@ -55,7 +55,8 @@ func (c *Crypto) Game(req []string, msg *dg.MessageCreate) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("cryto game error: %s", err)
 		}
-		return fmt.Sprintf("A new mine has opened! \n%s", c.encoded), nil
+		secondHalf := "Be the first to solve the encoding to earn some coin!"
+		return fmt.Sprintf("A new mine has opened! %s \n%s", secondHalf, c.encoded), nil
 	}
 
 	var userGuess string
