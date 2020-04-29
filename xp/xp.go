@@ -91,7 +91,7 @@ func (x *System) awardActivity(msg *dg.MessageCreate) {
 	award := len(msg.Content)
 	user := msg.Author.ID
 
-	// Don't award points to the bot
+	// Don't award points to bots
 	if msg.Author.Bot {
 		return
 	}

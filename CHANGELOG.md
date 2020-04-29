@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v0.9.1
+### Fixed
+- Bot auto promoting itself and other bots based on past XP awarded
+
 ## v0.9.0
 ### Added
 - Clear command to clear messages of the bot or a user for the past 100 messages.
