@@ -84,6 +84,10 @@ func (sd *SessionData) checkMessage(msg *dg.MessageCreate) {
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
+		massRepeatFound := checkForXPFarming(msg.Content)
+		if massRepeatFound {
+			return
+		}
 		// Add xp for all non-bot messages
 		sd.XP.ManipulateXP("addMessagePoints", msg)
 		// Check for role promotion
@@ -194,4 +198,26 @@ func (sd *SessionData) sendAsDM(res string, msg *dg.MessageCreate) {
 		log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
 	}
 	return
+}
+
+func checkForXPFarming(msg string) bool {
+	var prevByte rune
+	var count uint
+	for _, v := range msg {
+
+		if v == prevByte {
+			count++
+		}
+
+		if v != prevByte {
+			count = 0
+		}
+
+		if count >= 10 {
+			return true
+		}
+
+		prevByte = v
+	}
+	return false
 }
