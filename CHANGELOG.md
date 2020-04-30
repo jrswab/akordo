@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Rank number to xp leader board output
-- Function to check for 9 repeating characters in a row to not award XP
+- Function not award XP on certain conditions
 
 ### Fixed
 - blacklist add command to allow for multi-word phrases
