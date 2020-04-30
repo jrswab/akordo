@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
+	"git.sr.ht/~jrswab/akordo/xp"
+	x "git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 )
 
 // SelfAssignFile is the path were tha self assign role data is located
 const SelfAssignFile string = "data/selfAssignRoles.json"
+
+// MsgEmbed is used to shorten the name of the original embed type from discordGo
+type MsgEmbed *dg.MessageEmbed
 
 // DgSession is the interface for mocking the discordgo session functions in this package.
 type DgSession interface {
@@ -23,10 +29,14 @@ type DgSession interface {
 type Assigner interface {
 	ExecuteRoleCommands(req []string, msg *dg.MessageCreate) (*dg.MessageEmbed, error)
 	LoadSelfAssignRoles(file string) error
+	AutoPromote(msg *dg.MessageCreate) error
+	LoadAutoRanks(file string) error
 }
 type roleSystem struct {
-	dgs DgSession
-	sar *roleStorage
+	dgs   DgSession
+	xp    *xp.System
+	sar   *roleStorage
+	tiers *autoRanks
 }
 
 // Roles holds all data needed to execute the functionality.
@@ -34,10 +44,16 @@ type roleStorage struct {
 	SelfRoles map[string]string `json:"selfRoles"`
 }
 
+type autoRanks struct {
+	Tiers map[string]float64 `json:"tiers"` // map of total xp of role IDs
+}
+
 // NewRoleStorage creates the roles package data storage map for the session
-func NewRoleStorage(s *dg.Session) Assigner {
+func NewRoleStorage(s *dg.Session, xp *xp.System) Assigner {
 	return &roleSystem{
-		dgs: s,
+		dgs:   s,
+		xp:    xp,
+		tiers: &autoRanks{Tiers: make(map[string]float64)},
 		sar: &roleStorage{
 			SelfRoles: make(map[string]string),
 		},
@@ -74,6 +90,18 @@ func (r *roleSystem) ExecuteRoleCommands(req []string, msg *dg.MessageCreate) (*
 		return r.assignRole(req, msg)
 	case "uar":
 		return r.unassignRole(req, msg)
+	case "lar": // list auto ranks
+		// Create function to list the auto ranks.
+	case "aar": // add auto rank
+		ownerID, found := os.LookupEnv("BOT_OWNER")
+		if !found {
+			return nil, fmt.Errorf(
+				"XP Execute failed: \"BOT_OWNER\" environment variable not found",
+			)
+		}
+		if msg.Author.ID == ownerID {
+			return r.addAutoRank(x.AutoRankFile, req[2], req[3])
+		}
 	default:
 		notListed := "I don't know what to do :thinking:"
 		embed.Description = fmt.Sprintf("%s\nPlease check the command and try again", notListed)
@@ -212,4 +240,100 @@ func (r *roleSystem) findRequestedRole(req []string) (string, string) {
 		}
 	}
 	return sarName, sarID
+}
+
+func (r *roleSystem) addAutoRank(file, roleName, minXP string) (MsgEmbed, error) {
+	// Command: =xp aar roleName minXP
+	xp, err := strconv.ParseFloat(minXP, 64)
+	if err != nil {
+		return nil, fmt.Errorf("addAutoRanks() return: %s", err)
+	}
+	r.tiers.Tiers[roleName] = xp
+
+	err = r.saveAutoRanks(file)
+	if err != nil {
+		return nil, fmt.Errorf("saveAutoRanks failed: %s", err)
+	}
+
+	return &dg.MessageEmbed{
+		Description: fmt.Sprintf("Added %s to be awarded at >= %.2f", roleName, xp)}, nil
+}
+
+// LoadAutoRanks loads the saved xp data from the json file
+func (r *roleSystem) LoadAutoRanks(file string) error {
+	savedTiers, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(savedTiers, r.tiers)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SaveXP saves the current struct data to a json file
+func (r *roleSystem) saveAutoRanks(file string) error {
+	json, err := json.MarshalIndent(r.tiers, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	// Write to data to a file
+	err = ioutil.WriteFile(file, json, 0600)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// AutoPromote checks the user's current XP after each messag sent
+// and promotes the user to the correct role if crosses a certain threshold.
+func (r *roleSystem) AutoPromote(msg *dg.MessageCreate) error {
+	userID := msg.Author.ID
+	guildID := msg.GuildID
+
+	// If it's a bot; skip promotion
+	if msg.Author.Bot {
+		return nil
+	}
+
+	// Get roles set in the guild (server)
+	roles, err := r.dgs.GuildRoles(guildID)
+	if err != nil {
+		return fmt.Errorf("GuildRoles failed: %s", err)
+	}
+
+	// Set up the map of role names to their IDs
+	roleMap := make(map[string]string)
+	for _, role := range roles {
+		roleMap[role.Name] = role.ID
+	}
+
+	// Get user's current total xp
+	totalXP, ok := r.xp.Data.Users[userID]
+	if !ok {
+		return fmt.Errorf("user ID (%s) not found", userID)
+	}
+
+	// Set all roles that the user's xp allows
+	var roleID string
+	for roleName, minXP := range r.tiers.Tiers {
+		if totalXP >= minXP {
+			roleID = roleMap[roleName]
+			break
+		}
+	}
+
+	if roleID == "" {
+		return nil
+	}
+
+	err = r.dgs.GuildMemberRoleAdd(guildID, userID, roleID)
+	if err != nil {
+		return fmt.Errorf("GuildMemberRoleAdd failed: %s", err)
+	}
+
+	return nil
 }

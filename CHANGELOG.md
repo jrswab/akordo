@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rank number to xp leader board output
 - Function not award XP on certain conditions
 
+### Changed
+- Location of the ranking methods from the XP package to the Roles package
+
+### Removed
+- XP interface due to usage change after moving role commands to the role package.
+
 ### Fixed
 - blacklist add command to allow for multi-word phrases
 

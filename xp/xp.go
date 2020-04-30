@@ -2,7 +2,6 @@ package xp
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"sync"
 	"time"
@@ -23,35 +22,23 @@ type AkSession interface {
 	GuildMemberRoleAdd(guildID string, userID string, roleID string) (err error)
 }
 
-// Exp is the interface for interacting with the xp methods
-type Exp interface {
-	LoadXP(file string) error
-	ManipulateXP(action string, msg *dg.MessageCreate)
-	AutoSaveXP()
-	Execute(req []string, msg *dg.MessageCreate) (MsgEmbed, error)
-	AutoPromote(msg *dg.MessageCreate) error
-	LoadAutoRanks(file string) error
-}
-
 // System holds all data needed to execute the functionality.
 type System struct {
-	data    *xpData
-	tiers   *autoRanks
+	Data    *Data
 	callRec *p.Record
 	mutex   *sync.Mutex
 	dgs     AkSession
 }
 
-// DataStore holds the experience gained by each user.
-type xpData struct {
+// Data holds the experience gained by each user.
+type Data struct {
 	Users map[string]float64 `json:"users"`
 }
 
 // NewXpStore creates the experience data storage map for the session
-func NewXpStore(mtx *sync.Mutex, s *dg.Session) Exp {
+func NewXpStore(mtx *sync.Mutex, s *dg.Session) *System {
 	return &System{
-		data:    &xpData{Users: make(map[string]float64)},
-		tiers:   &autoRanks{Tiers: make(map[string]float64)},
+		Data:    &Data{Users: make(map[string]float64)},
 		callRec: p.NewRecorder(),
 		mutex:   mtx,
 		dgs:     s,
@@ -65,7 +52,7 @@ func (x *System) LoadXP(file string) error {
 		return err
 	}
 
-	err = json.Unmarshal(savedXp, x.data)
+	err = json.Unmarshal(savedXp, x.Data)
 	if err != nil {
 		return err
 	}
@@ -100,12 +87,12 @@ func (x *System) awardActivity(msg *dg.MessageCreate) {
 }
 
 func (x *System) writeToXpMap(user string, award, points float64) {
-	if xp, ok := x.data.Users[user]; ok {
-		x.data.Users[user] = xp + (award * points)
+	if xp, ok := x.Data.Users[user]; ok {
+		x.Data.Users[user] = xp + (award * points)
 		return
 	}
 
-	x.data.Users[user] = float64(award) * points
+	x.Data.Users[user] = float64(award) * points
 }
 
 // AutoSaveXP is launched by main.go before accepting new messages.
@@ -121,7 +108,7 @@ func (x *System) AutoSaveXP() {
 
 // SaveXP saves the current struct data to a json file
 func (x *System) saveXP(file string) error {
-	json, err := json.MarshalIndent(x.data, "", "  ")
+	json, err := json.MarshalIndent(x.Data, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -131,55 +118,5 @@ func (x *System) saveXP(file string) error {
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-// AutoPromote checks the user's current XP after each messag sent
-// and promotes the user to the correct role if crosses a certain threshold.
-func (x *System) AutoPromote(msg *dg.MessageCreate) error {
-	userID := msg.Author.ID
-	guildID := msg.GuildID
-
-	// If it's a bot; skip promotion
-	if msg.Author.Bot {
-		return nil
-	}
-
-	// Get roles set in the guild (server)
-	roles, err := x.dgs.GuildRoles(guildID)
-	if err != nil {
-		return fmt.Errorf("GuildRoles failed: %s", err)
-	}
-
-	// Set up the map of role names to their IDs
-	roleMap := make(map[string]string)
-	for _, role := range roles {
-		roleMap[role.Name] = role.ID
-	}
-
-	// Get user's current total xp
-	totalXP, ok := x.data.Users[userID]
-	if !ok {
-		return fmt.Errorf("user ID (%s) not found", userID)
-	}
-
-	// Set all roles that the user's xp allows
-	var roleID string
-	for roleName, minXP := range x.tiers.Tiers {
-		if totalXP >= minXP {
-			roleID = roleMap[roleName]
-			break
-		}
-	}
-
-	if roleID == "" {
-		return nil
-	}
-
-	err = x.dgs.GuildMemberRoleAdd(guildID, userID, roleID)
-	if err != nil {
-		return fmt.Errorf("GuildMemberRoleAdd failed: %s", err)
-	}
-
 	return nil
 }

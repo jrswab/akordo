@@ -1,14 +1,10 @@
 package xp
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
@@ -34,16 +30,6 @@ func (x *System) Execute(req []string, msg *dg.MessageCreate) (MsgEmbed, error) 
 			return nil, err
 		}
 		return &dg.MessageEmbed{Description: "XP data saved!"}, nil
-	case "aar": // add auto rank
-		ownerID, found := os.LookupEnv("BOT_OWNER")
-		if !found {
-			return nil, fmt.Errorf(
-				"XP Execute failed: \"BOT_OWNER\" environment variable not found",
-			)
-		}
-		if msg.Author.ID == ownerID {
-			return x.addAutoRank(AutoRankFile, req[2], req[3])
-		}
 	case "lb":
 		return x.leaderBoard(msg)
 	}
@@ -100,7 +86,7 @@ func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (MsgEmbed, e
 		name = msg.Author.Username
 	}
 
-	xp, ok := x.data.Users[userID]
+	xp, ok := x.Data.Users[userID]
 	if !ok {
 		return &dg.MessageEmbed{Description: fmt.Sprintf("%s has not earned any XP", name)}, nil
 	}
@@ -149,60 +135,10 @@ func (x *System) findUserID(userName string, msg *dg.MessageCreate) (string, err
 	return userID, nil
 }
 
-type autoRanks struct {
-	Tiers map[string]float64 `json:"tiers"` // map of total xp of role IDs
-}
-
-func (x *System) addAutoRank(file, roleName, minXP string) (MsgEmbed, error) {
-	// Command: =xp aar roleName minXP
-	xp, err := strconv.ParseFloat(minXP, 64)
-	if err != nil {
-		return nil, fmt.Errorf("addAutoRanks() return: %s", err)
-	}
-	x.tiers.Tiers[roleName] = xp
-
-	err = x.saveAutoRanks(file)
-	if err != nil {
-		return nil, fmt.Errorf("saveAutoRanks failed: %s", err)
-	}
-
-	return &dg.MessageEmbed{
-		Description: fmt.Sprintf("Added %s to be awarded at >= %.2f", roleName, xp)}, nil
-}
-
-// LoadAutoRanks loads the saved xp data from the json file
-func (x *System) LoadAutoRanks(file string) error {
-	savedTiers, err := ioutil.ReadFile(file)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(savedTiers, x.tiers)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// SaveXP saves the current struct data to a json file
-func (x *System) saveAutoRanks(file string) error {
-	json, err := json.MarshalIndent(x.tiers, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	// Write to data to a file
-	err = ioutil.WriteFile(file, json, 0600)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (x *System) leaderBoard(msg *dg.MessageCreate) (MsgEmbed, error) {
 	flippedMap := make(map[float64]string)
 	flipSlice := []float64{}
-	for key, value := range x.data.Users {
+	for key, value := range x.Data.Users {
 		flipSlice = append(flipSlice, value)
 		flippedMap[value] = key
 	}

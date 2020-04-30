@@ -18,7 +18,7 @@ type SessionData struct {
 	session *dg.Session
 	Mutex   *sync.Mutex
 	prefix  string
-	XP      xp.Exp
+	XP      *xp.System
 	Roles   roles.Assigner
 
 	// Plugins:
@@ -49,7 +49,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 
 	// Commands that require the session for execution
 	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
-	sd.Roles = roles.NewRoleStorage(sd.session)
+	sd.Roles = roles.NewRoleStorage(sd.session, sd.XP)
 	sd.clear = plugs.NewEraser(sd.session)
 	sd.Blacklist = plugs.NewBlacklist(sd.session)
 	sd.Rules = plugs.NewAgreement(sd.session)
@@ -91,7 +91,7 @@ func (sd *SessionData) checkMessage(msg *dg.MessageCreate) {
 		// Add xp for all non-bot messages
 		sd.XP.ManipulateXP("addMessagePoints", msg)
 		// Check for role promotion
-		err := sd.XP.AutoPromote(msg)
+		err := sd.Roles.AutoPromote(msg)
 		if err != nil {
 			log.Printf("xp.AutoPromote failed: %s", err)
 		}

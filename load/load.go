@@ -20,7 +20,7 @@ func SavedData(sd *controller.SessionData) {
 	}
 	// Load saved role data into the struct created by NewSessionData
 	if _, err := os.Stat(xp.AutoRankFile); err == nil {
-		if err := sd.XP.LoadAutoRanks(xp.AutoRankFile); err != nil {
+		if err := sd.Roles.LoadAutoRanks(xp.AutoRankFile); err != nil {
 			log.Fatalf("error loading role file: %s", err)
 		}
 	}
