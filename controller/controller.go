@@ -209,10 +209,6 @@ func checkForXPFarming(msg string) bool {
 			count++
 		}
 
-		if v != prevByte {
-			count = 0
-		}
-
 		if count >= 10 {
 			return true
 		}
