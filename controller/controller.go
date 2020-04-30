@@ -84,8 +84,8 @@ func (sd *SessionData) checkMessage(msg *dg.MessageCreate) {
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(msg.Content)
 	if !match {
-		massRepeatFound := checkForXPFarming(msg.Content)
-		if massRepeatFound {
+		exempt := xpExemptions(msg.Content)
+		if exempt {
 			return
 		}
 		// Add xp for all non-bot messages
@@ -200,7 +200,15 @@ func (sd *SessionData) sendAsDM(res string, msg *dg.MessageCreate) {
 	return
 }
 
-func checkForXPFarming(msg string) bool {
+func xpExemptions(msg string) bool {
+	// Check for emoji only message
+	var re = regexp.MustCompile(`(?m)^:(.)+:$`)
+	match := re.MatchString(msg)
+	if match {
+		return true
+	}
+
+	// Check for ten or more repeating characters
 	var prevByte rune
 	var count uint
 	for _, v := range msg {
