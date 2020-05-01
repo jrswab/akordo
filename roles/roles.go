@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strconv"
 
 	"git.sr.ht/~jrswab/akordo/xp"
@@ -335,9 +336,22 @@ func (r *roleSystem) AutoPromote(msg *dg.MessageCreate) error {
 }
 
 func (r *roleSystem) listTiers() (MsgEmbed, error) {
+	flipTiers := make(map[float64]string)
+	rankOrder := []float64{}
+
+	// create map of min xp and tier names
+	for name, threshold := range r.tiers.Tiers {
+		flipTiers[threshold] = name
+		rankOrder = append(rankOrder, threshold)
+	}
+
+	// sort  the slice of min xp into ascending order
+	sortedRanks := sort.Float64Slice(rankOrder)
+
+	// Create output string in the order of sortedRanks
 	var tierList string
-	for rank, xp := range r.tiers.Tiers {
-		tierList = fmt.Sprintf("%s\n%s: %.2f", tierList, rank, xp)
+	for _, xp := range sortedRanks {
+		tierList = fmt.Sprintf("%s\n%s: %.2f", tierList, flipTiers[xp], xp)
 	}
 	return &dg.MessageEmbed{Title: "Auto Rank XP", Description: tierList}, nil
 }
