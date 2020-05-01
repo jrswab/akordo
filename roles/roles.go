@@ -324,16 +324,11 @@ func (r *roleSystem) AutoPromote(msg *dg.MessageCreate) error {
 	for roleName, minXP := range r.tiers.Tiers {
 		if totalXP >= minXP {
 			roleID = roleMap[roleName]
+			err = r.dgs.GuildMemberRoleAdd(guildID, userID, roleID)
+			if err != nil {
+				return fmt.Errorf("GuildMemberRoleAdd failed: %s", err)
+			}
 		}
-	}
-
-	if roleID == "" {
-		return nil
-	}
-
-	err = r.dgs.GuildMemberRoleAdd(guildID, userID, roleID)
-	if err != nil {
-		return fmt.Errorf("GuildMemberRoleAdd failed: %s", err)
 	}
 
 	return nil
