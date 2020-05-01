@@ -37,21 +37,17 @@ func (a *Agreement) Handler(req []string, msg *dg.MessageCreate) (string, error)
 	case "set":
 		return a.addAgreementRole(req[2], msg)
 	case "agreed":
-		err := a.ruleAgreement(msg)
-		if err != nil {
-			return "", fmt.Errorf("ruleAgreement() failed: %s", err)
-		}
-		return "User Added :ok_hand:", nil
+		return a.ruleAgreement(msg)
 	}
 	return "Usage: <prefix>rules agreed", nil
 }
 
-func (a *Agreement) ruleAgreement(msg *dg.MessageCreate) error {
+func (a *Agreement) ruleAgreement(msg *dg.MessageCreate) (string, error) {
 	err := a.session.GuildMemberRoleAdd(msg.GuildID, msg.Author.ID, a.BaseRole)
 	if err != nil {
-		return fmt.Errorf("GuildMemberRoleAdd() failed: %s", err)
+		return "", fmt.Errorf("GuildMemberRoleAdd() failed: %s", err)
 	}
-	return nil
+	return "User Added :ok_hand:", nil
 }
 
 func (a *Agreement) addAgreementRole(roleID string, msg *dg.MessageCreate) (string, error) {
