@@ -91,7 +91,7 @@ func (r *roleSystem) ExecuteRoleCommands(req []string, msg *dg.MessageCreate) (*
 	case "uar":
 		return r.unassignRole(req, msg)
 	case "lar": // list auto ranks
-		// Create function to list the auto ranks.
+		return r.listTiers()
 	case "aar": // add auto rank
 		ownerID, found := os.LookupEnv("BOT_OWNER")
 		if !found {
@@ -336,4 +336,12 @@ func (r *roleSystem) AutoPromote(msg *dg.MessageCreate) error {
 	}
 
 	return nil
+}
+
+func (r *roleSystem) listTiers() (MsgEmbed, error) {
+	var tierList string
+	for rank, xp := range r.tiers.Tiers {
+		tierList = fmt.Sprintf("%s\n%s: %.2f", tierList, rank, xp)
+	}
+	return &dg.MessageEmbed{Title: "Auto Rank XP", Description: tierList}, nil
 }
