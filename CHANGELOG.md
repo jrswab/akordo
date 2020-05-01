@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - the missing command to get the current version number
 
+### Fixed
+- Auto promote to promote to add any matching role.
+
 ## v0.10.0
 ### Added
 - Rank number to xp leader board output

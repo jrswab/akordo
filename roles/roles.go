@@ -324,7 +324,6 @@ func (r *roleSystem) AutoPromote(msg *dg.MessageCreate) error {
 	for roleName, minXP := range r.tiers.Tiers {
 		if totalXP >= minXP {
 			roleID = roleMap[roleName]
-			break
 		}
 	}
 
