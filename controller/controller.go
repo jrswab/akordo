@@ -152,7 +152,7 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		res, err = sd.Rules.Handler(req, msg)
 	case sd.prefix + "version":
 		msgType = "embed"
-		res, err = version()
+		res, err = printVersion()
 	case sd.prefix + "xp":
 		msgType = "embed"
 		emb, err = sd.XP.Execute(req, msg)
@@ -231,6 +231,6 @@ func xpExemptions(msg string) bool {
 	return false
 }
 
-func version() (*dg.MessageEmbed, error) {
-	return &dg.MessageEmbed{Title: "Current Version:", Description: version}
+func printVersion() (*dg.MessageEmbed, error) {
+	return &dg.MessageEmbed{Title: "Current Version:", Description: version}, nil
 }
