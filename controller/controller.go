@@ -13,6 +13,8 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
+const version string = "v0.10.1"
+
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
 	session *dg.Session
@@ -148,6 +150,9 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		res, err = sd.r34Request.Rule34(req, sd.session, msg)
 	case sd.prefix + "rules":
 		res, err = sd.Rules.Handler(req, msg)
+	case sd.prefix + "version":
+		msgType = "embed"
+		res, err = version()
 	case sd.prefix + "xp":
 		msgType = "embed"
 		emb, err = sd.XP.Execute(req, msg)
@@ -224,4 +229,8 @@ func xpExemptions(msg string) bool {
 		prevByte = v
 	}
 	return false
+}
+
+func version() (*dg.MessageEmbed, error) {
+	return &dg.MessageEmbed{Title: "Current Version:", Description: version}
 }

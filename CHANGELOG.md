@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## v0.10.0
+## v0.10.1
+### Added
+- the missing command to get the current version number
 
+## v0.10.0
 ### Added
 - Rank number to xp leader board output
 - Function not award XP on certain conditions
