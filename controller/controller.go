@@ -152,7 +152,7 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		res, err = sd.Rules.Handler(req, msg)
 	case sd.prefix + "version":
 		msgType = "embed"
-		res, err = printVersion()
+		emb, err = printVersion()
 	case sd.prefix + "xp":
 		msgType = "embed"
 		emb, err = sd.XP.Execute(req, msg)
