@@ -157,7 +157,7 @@ func (x *System) leaderBoard(msg *dg.MessageCreate) (MsgEmbed, error) {
 			log.Printf("leaderboard() GuildMember() returned an error: %s", err)
 			continue
 		}
-		top10 = fmt.Sprintf("%d) %s\n%s (%.2f)", rank, top10, user.User.Username, flipSlice[i])
+		top10 = fmt.Sprintf("%s\n%d) %s (%.2f)", top10, rank, user.User.Username, flipSlice[i])
 		rank++
 	}
 
