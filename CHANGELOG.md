@@ -6,15 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## v0.10.1
-### Added
-- the missing command to get the current version number
-
 ### Fixed
 - Auto promote to promote to add any matching role.
 - XP leaderboard output
 - Auto Rank list to display in ascending order
 - Return for `rules agreed`
+
+## v0.10.1
+### Added
+- the missing command to get the current version number
 
 ## v0.10.0
 ### Added
