@@ -7,14 +7,17 @@ import (
 	"testing"
 
 	"git.sr.ht/~jrswab/akordo/roles/mocks"
+	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestNewRoleStorage(t *testing.T) {
 	dgSess := &dg.Session{}
+	xpSys := &xp.System{}
 	type args struct {
-		s *dg.Session
+		s  *dg.Session
+		xp *xp.System
 	}
 	tests := []struct {
 		name string
@@ -23,9 +26,11 @@ func TestNewRoleStorage(t *testing.T) {
 	}{
 		{
 			name: "Default role storage creation",
-			args: args{s: dgSess},
+			args: args{s: dgSess, xp: xpSys},
 			want: &roleSystem{
-				dgs: dgSess,
+				dgs:   dgSess,
+				xp:    xpSys,
+				tiers: &autoRanks{Tiers: make(map[string]float64)},
 				sar: &roleStorage{
 					SelfRoles: make(map[string]string),
 				},
@@ -34,7 +39,7 @@ func TestNewRoleStorage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewRoleStorage(tt.args.s); !reflect.DeepEqual(got, tt.want) {
+			if got := NewRoleStorage(tt.args.s, tt.args.xp); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewRoleStorage() = %v, want %v", got, tt.want)
 			}
 		})
@@ -275,6 +280,149 @@ func Test_roleSystem_ExecuteRoleCommands(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("roleSystem.ExecuteRoleCommands() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSystem_AutoPromote(t *testing.T) {
+	testTiers := make(map[string]float64)
+	testTiers["Crew"] = 100
+	testTiers["Ensign"] = 200
+
+	testUsers := make(map[string]float64)
+	testUsers["1111"] = 100
+	testUsers["2222"] = 10
+
+	role1 := &dg.Role{ID: "0000", Name: "Crew"}
+	role2 := &dg.Role{ID: "1111", Name: "Ensign"}
+	roleSlice := []*dg.Role{role1, role2}
+
+	mockSess := new(mocks.DgSession)
+	// For "user found and promoted"
+	mockSess.On("GuildRoles", "1111").Return(roleSlice, nil).Once()
+	mockSess.On("GuildMemberRoleAdd", "1111", "1111", "0000").Return(nil).Once()
+
+	// For "bad guild id"
+	mockSess.On("GuildRoles", "0000").Return(nil, fmt.Errorf("some fake error")).Once()
+
+	// For "user not found"
+	mockSess.On("GuildRoles", "1111").Return(roleSlice, nil).Once()
+
+	// For "fail to update user roles"
+	mockSess.On("GuildRoles", "1111").Return(roleSlice, nil).Once()
+	mockSess.On("GuildMemberRoleAdd", "1111", "4444", "").
+		Return(fmt.Errorf("some fake error")).Once()
+
+	type fields struct {
+		dgs   DgSession
+		xp    *xp.System
+		sar   *roleStorage
+		tiers *autoRanks
+	}
+	type args struct {
+		msg *dg.MessageCreate
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "User found and promoted",
+			fields: fields{
+				xp: &xp.System{
+					Data: &xp.Data{Users: testUsers},
+				},
+				tiers: &autoRanks{Tiers: testTiers},
+				dgs:   mockSess,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						GuildID: "1111",
+						Author: &dg.User{
+							ID: "1111",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Bad Guild ID",
+			fields: fields{
+				xp: &xp.System{
+					Data: &xp.Data{Users: testUsers},
+				},
+				tiers: &autoRanks{Tiers: testTiers},
+				dgs:   mockSess,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						GuildID: "0000",
+						Author: &dg.User{
+							ID: "2222",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "User not found",
+			fields: fields{
+				xp: &xp.System{
+					Data: &xp.Data{Users: testUsers},
+				},
+				tiers: &autoRanks{Tiers: testTiers},
+				dgs:   mockSess,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						GuildID: "1111",
+						Author: &dg.User{
+							ID: "3333",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Fail to update user roles",
+			fields: fields{
+				xp: &xp.System{
+					Data: &xp.Data{Users: testUsers},
+				},
+				tiers: &autoRanks{Tiers: testTiers},
+				dgs:   mockSess,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						GuildID: "1111",
+						Author: &dg.User{
+							ID: "4444",
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &roleSystem{
+				xp:    tt.fields.xp,
+				tiers: tt.fields.tiers,
+				dgs:   tt.fields.dgs,
+			}
+			if err := r.AutoPromote(tt.args.msg); (err != nil) != tt.wantErr {
+				t.Errorf("System.AutoPromote() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

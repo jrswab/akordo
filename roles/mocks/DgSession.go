@@ -12,6 +12,29 @@ type DgSession struct {
 	mock.Mock
 }
 
+// GuildMember provides a mock function with given fields: guildID, userID
+func (_m *DgSession) GuildMember(guildID string, userID string) (*discordgo.Member, error) {
+	ret := _m.Called(guildID, userID)
+
+	var r0 *discordgo.Member
+	if rf, ok := ret.Get(0).(func(string, string) *discordgo.Member); ok {
+		r0 = rf(guildID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*discordgo.Member)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(guildID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GuildMemberRoleAdd provides a mock function with given fields: guildID, userID, roleID
 func (_m *DgSession) GuildMemberRoleAdd(guildID string, userID string, roleID string) error {
 	ret := _m.Called(guildID, userID, roleID)
@@ -38,6 +61,29 @@ func (_m *DgSession) GuildMemberRoleRemove(guildID string, userID string, roleID
 	}
 
 	return r0
+}
+
+// GuildMembers provides a mock function with given fields: guildID, after, limit
+func (_m *DgSession) GuildMembers(guildID string, after string, limit int) ([]*discordgo.Member, error) {
+	ret := _m.Called(guildID, after, limit)
+
+	var r0 []*discordgo.Member
+	if rf, ok := ret.Get(0).(func(string, string, int) []*discordgo.Member); ok {
+		r0 = rf(guildID, after, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*discordgo.Member)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
+		r1 = rf(guildID, after, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GuildRoles provides a mock function with given fields: guildID

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Rank number to xp leader board output
 - Function not award XP on certain conditions
+- Command to list the auto assign roles and their xp
 
 ### Changed
 - Location of the ranking methods from the XP package to the Roles package
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - blacklist add command to allow for multi-word phrases
+- Unit tests for xp and roles packages
 
 ## v0.9.1
 ### Added

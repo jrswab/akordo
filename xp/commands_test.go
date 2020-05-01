@@ -54,7 +54,7 @@ func TestSystem_Execute(t *testing.T) {
 	mockSess.On("GuildMembers", "1111", "998", 1000).Return(mockMembSlice2, nil)
 
 	type fields struct {
-		data    *xpData
+		Data    *Data
 		callRec *p.Record
 		mutex   *sync.Mutex
 		dgs     AkSession
@@ -73,7 +73,7 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "save comand",
 			fields: fields{
-				data:    &xpData{},
+				Data:    &Data{},
 				callRec: p.NewRecorder(),
 				mutex:   &sync.Mutex{},
 				dgs:     &dg.Session{},
@@ -88,7 +88,7 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "xp without params",
 			fields: fields{
-				data:    &xpData{Users: testUsers},
+				Data:    &Data{Users: testUsers},
 				callRec: p.NewRecorder(),
 				mutex:   &sync.Mutex{},
 				dgs:     &dg.Session{},
@@ -110,7 +110,7 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "xp with @username",
 			fields: fields{
-				data:    &xpData{Users: testUsers},
+				Data:    &Data{Users: testUsers},
 				callRec: p.NewRecorder(),
 				mutex:   &sync.Mutex{},
 				dgs:     mockSess,
@@ -133,7 +133,7 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "xp with username and no @",
 			fields: fields{
-				data:    &xpData{Users: testUsers},
+				Data:    &Data{Users: testUsers},
 				callRec: p.NewRecorder(),
 				mutex:   &sync.Mutex{},
 				dgs:     mockSess,
@@ -156,7 +156,7 @@ func TestSystem_Execute(t *testing.T) {
 		{
 			name: "user not found in xp.json file",
 			fields: fields{
-				data:    &xpData{Users: testUsers},
+				Data:    &Data{Users: testUsers},
 				callRec: p.NewRecorder(),
 				mutex:   &sync.Mutex{},
 				dgs:     mockSess,
@@ -180,7 +180,7 @@ func TestSystem_Execute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			x := &System{
-				data:    tt.fields.data,
+				Data:    tt.fields.Data,
 				callRec: tt.fields.callRec,
 				mutex:   tt.fields.mutex,
 				dgs:     tt.fields.dgs,

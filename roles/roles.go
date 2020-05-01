@@ -21,6 +21,8 @@ type MsgEmbed *dg.MessageEmbed
 // DgSession is the interface for mocking the discordgo session functions in this package.
 type DgSession interface {
 	GuildRoles(guildID string) (st []*dg.Role, err error)
+	GuildMember(guildID string, userID string) (st *dg.Member, err error)
+	GuildMembers(guildID string, after string, limit int) (st []*dg.Member, err error)
 	GuildMemberRoleAdd(guildID string, userID string, roleID string) (err error)
 	GuildMemberRoleRemove(guildID string, userID string, roleID string) (err error)
 }
