@@ -41,6 +41,7 @@ func (a *Agreement) Handler(req []string, msg *dg.MessageCreate) (string, error)
 		if err != nil {
 			return "", fmt.Errorf("ruleAgreement() failed: %s", err)
 		}
+		return "User Added :ok_hand:", nil
 	}
 	return "Usage: <prefix>rules agreed", nil
 }
