@@ -1,10 +1,8 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"regexp"
-	"strings"
 	"sync"
 
 	plugs "git.sr.ht/~jrswab/akordo/plugins"
@@ -59,120 +57,57 @@ func NewSessionData(s *dg.Session) *SessionData {
 	return sd
 }
 
+type controller struct {
+	sess     *SessionData
+	msgType  string
+	response string
+	delete   bool
+	emb      *dg.MessageEmbed
+	msg      *dg.MessageCreate
+}
+
 // NewMessage waits for a ne message to be sent in a the Discord guild
 // This kicks off a Goroutine to free up the mutex set by discordgo `AddHandler` method.
 func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
-	go sd.checkMessage(msg)
+	// Create a new controller for each message containing the data used acrossed
+	// the entire session.
+	c := &controller{
+		sess:     sd,
+		msgType:  "chan",
+		response: "",
+		emb:      &dg.MessageEmbed{},
+		msg:      msg,
+	}
+
+	go c.checkMessage()
 }
 
 // CheckSyntax uses regexp from the standard library to check the message has the correct
 // prefix as defined by the `prefix` constant.
-func (sd *SessionData) checkMessage(msg *dg.MessageCreate) {
-	// Check for blacklisted words
-	isBlacklisted, err := sd.Blacklist.CheckBannedWords(msg)
-	if err != nil {
-		log.Printf("CheckBannedWords() failed: %s", err)
-	}
-	if isBlacklisted {
-		reason := "Kicked for inappropriate language."
-		err := sd.session.GuildMemberDeleteWithReason(msg.GuildID, msg.Author.ID, reason)
-		if err != nil {
-			log.Printf("GuildMemberDeleteWithReason() failed: %s", err)
-		}
-	}
+func (c *controller) checkMessage() {
+	sd := c.sess
 
-	// Make sure the message matches the bot syntax
-	regEx := fmt.Sprintf("(?m)^%s(\\w|\\s)+", sd.prefix)
-	var re = regexp.MustCompile(regEx)
-	match := re.MatchString(msg.Content)
-	if !match {
-		exempt := xpExemptions(msg.Content)
-		if exempt {
-			return
-		}
-		// Add xp for all non-bot messages
-		sd.XP.ManipulateXP("addMessagePoints", msg)
-		// Check for role promotion
-		err := sd.Roles.AutoPromote(msg)
-		if err != nil {
-			log.Printf("xp.AutoPromote failed: %s", err)
-		}
+	c.checkWords()
+
+	isCMD := c.determineIfCmd()
+	if !isCMD {
 		return
 	}
 
-	sd.ExecuteTask(msg)
+	// Execute user command:
+	c.cmdHandler()
 
 	// Remove command after the bot replies
-	err = sd.session.ChannelMessageDelete(msg.ChannelID, msg.ID)
+	err := sd.session.ChannelMessageDelete(c.msg.ChannelID, c.msg.ID)
 	if err != nil {
 		log.Printf("failed to delete message after bot reply: %s", err)
 	}
 }
 
-// ExecuteTask looks up the command found by the bot and kicks off a Goroutine do what
-// the user is asking to do.
-//
-// To remove a plugin simply remove the case statement for that plugin
-// To add a plugin, create a case statement for the plugin as shown below.
-// If the plugin is new create a new `.go` file under the `plugins` directory.
-func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
-	var (
-		res    string
-		emb    *dg.MessageEmbed
-		err    error
-		delete bool
-	)
-
-	// Split the string to a slice to parse parameters
-	req := strings.Split(msg.Content, " ")
-
-	msgType := "chan"
-	switch req[0] {
-	case sd.prefix + "blacklist":
-		res, err = sd.Blacklist.Handler(req, msg)
-	case sd.prefix + "clear":
-		msgType = "none"
-		err = sd.clear.ClearHandler(msg)
-	case sd.prefix + "crypto":
-		res, err = sd.crypto.Game(req, msg)
-	case sd.prefix + "gif":
-		res, err = sd.gifRequest.Gif(req, sd.session, msg)
-	case sd.prefix + "man":
-		msgType = "dm"
-		res = plugs.Manual(req, sd.session, msg)
-	case sd.prefix + "meme":
-		res, err = sd.memeRequest.RequestMeme(req, sd.session, msg)
-	case sd.prefix + "ping":
-		res = sd.pingRecord.Pong(msg)
-	case sd.prefix + "roles":
-		msgType = "embed"
-		emb, err = sd.Roles.ExecuteRoleCommands(req, msg)
-	case sd.prefix + "rule34":
-		res, err = sd.r34Request.Rule34(req, sd.session, msg)
-	case sd.prefix + "rules":
-		delete = true
-		res, err = sd.Rules.Handler(req, msg)
-	case sd.prefix + "version":
-		msgType = "embed"
-		emb, err = printVersion()
-	case sd.prefix + "xp":
-		msgType = "embed"
-		emb, err = sd.XP.Execute(req, msg)
-	default:
-		res = "I don't know what to do with that :sob:"
-	}
-
-	if err != nil {
-		log.Printf("error executing task: %s", err)
-		return
-	}
-
-	sd.reply(res, msgType, delete, emb, msg)
-}
-
 // Reply takes the executed data and replies to the user. This is either in the channel
 // where the command was sent or as a direct message to the user.
-func (sd *SessionData) reply(res, msgType string, shouldDelete bool, emb *dg.MessageEmbed, msg *dg.MessageCreate) {
+func (c *controller) reply() {
+	sd := c.sess
 	s := sd.session
 	var (
 		botMsg *dg.Message
@@ -180,23 +115,23 @@ func (sd *SessionData) reply(res, msgType string, shouldDelete bool, emb *dg.Mes
 	)
 
 	// Determine bot output method.
-	switch msgType {
+	switch c.msgType {
 	case "dm":
-		sd.sendAsDM(res, msg)
+		c.sendAsDM()
 	case "embed":
-		botMsg, err = s.ChannelMessageSendEmbed(msg.ChannelID, emb)
+		botMsg, err = s.ChannelMessageSendEmbed(c.msg.ChannelID, c.emb)
 		if err != nil {
 			log.Printf("reply ChannelMessageSendEmbed failed: %s", err)
 		}
 	case "chan":
-		botMsg, err = s.ChannelMessageSend(msg.ChannelID, res)
+		botMsg, err = s.ChannelMessageSend(c.msg.ChannelID, c.response)
 		if err != nil {
 			log.Printf("reply ChannelMessageSend failed: %s", err)
 		}
 	}
 
 	// Delete bot reply if true
-	if shouldDelete {
+	if c.delete {
 		err = sd.session.ChannelMessageDelete(botMsg.ChannelID, botMsg.ID)
 		if err != nil {
 			log.Printf("failed to delete message after bot reply: %s", err)
@@ -204,16 +139,17 @@ func (sd *SessionData) reply(res, msgType string, shouldDelete bool, emb *dg.Mes
 	}
 }
 
-func (sd *SessionData) sendAsDM(res string, msg *dg.MessageCreate) {
+func (c *controller) sendAsDM() {
+	sd := c.sess
 	s := sd.session
-	dm, err := s.UserChannelCreate(msg.Author.ID)
+	dm, err := s.UserChannelCreate(c.msg.Author.ID)
 	if err != nil {
 		log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
-			msg.Author.Username, err)
+			c.msg.Author.Username, err)
 		return
 	}
 
-	_, err = s.ChannelMessageSend(dm.ID, res)
+	_, err = s.ChannelMessageSend(dm.ID, c.response)
 	if err != nil {
 		log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
 	}

@@ -52,7 +52,7 @@ func (rr *Rule34Request) Rule34(req []string, s AkSession, msg *dg.MessageCreate
 	}
 
 	if !dChan.NSFW {
-		return "", nil
+		return "", fmt.Errorf("rule34: channel is not marked NSFW")
 	}
 
 	// Check for proper formatting of message:

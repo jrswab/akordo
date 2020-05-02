@@ -38,6 +38,11 @@ func (x *System) Execute(req []string, msg *dg.MessageCreate) (MsgEmbed, error) 
 
 // ReturnXp checks the user's request and returns xp data based on the command entered.
 func (x *System) returnXp(req []string, msg *dg.MessageCreate) (MsgEmbed, error) {
+	// When user runs the xp command with alone return that user's XP
+	if len(req) < 2 {
+		return x.userXp(msg.Author.Username, msg.Author.ID, msg)
+	}
+
 	var id string
 	regEx := fmt.Sprintf("(?m)^<@!\\w+>")
 	var re = regexp.MustCompile(regEx)
@@ -61,14 +66,6 @@ func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (MsgEmbed, e
 	alertUser, tooSoon := x.callRec.CheckLastAsk(msg)
 	if tooSoon {
 		return &dg.MessageEmbed{Description: alertUser}, nil
-	}
-
-	if userID == "" {
-		userID = msg.Author.ID
-	}
-
-	if name == "" {
-		name = msg.Author.Username
 	}
 
 	xp, ok := x.Data.Users[userID]
