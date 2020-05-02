@@ -20,7 +20,7 @@ type MsgEmbed *dg.MessageEmbed
 func (x *System) Execute(req []string, msg *dg.MessageCreate) (MsgEmbed, error) {
 	// When user runs the xp command with alone return that user's XP
 	if len(req) < 2 {
-		return x.userXp("", "", msg)
+		return x.returnXp(req, msg)
 	}
 
 	switch req[1] {
@@ -38,7 +38,7 @@ func (x *System) Execute(req []string, msg *dg.MessageCreate) (MsgEmbed, error) 
 
 // ReturnXp checks the user's request and returns xp data based on the command entered.
 func (x *System) returnXp(req []string, msg *dg.MessageCreate) (MsgEmbed, error) {
-	var id, user string
+	var id string
 	regEx := fmt.Sprintf("(?m)^<@!\\w+>")
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(req[1])
@@ -54,22 +54,7 @@ func (x *System) returnXp(req []string, msg *dg.MessageCreate) (MsgEmbed, error)
 		return x.userXp(member.User.Username, id, msg)
 	}
 
-	if !match {
-		for idx, word := range req[1:] {
-			if idx == 0 {
-				user = word
-				continue
-			}
-			user = fmt.Sprintf("%s %s", user, word)
-		}
-		id, err := x.findUserID(user, msg)
-		if err != nil {
-			return nil, fmt.Errorf("findUserID error: %s", err)
-		}
-		return x.userXp(user, id, msg)
-	}
-
-	return &dg.MessageEmbed{Description: "User not found..."}, nil
+	return &dg.MessageEmbed{Description: "User not found... Did you use `@`?"}, nil
 }
 
 func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (MsgEmbed, error) {
@@ -94,6 +79,8 @@ func (x *System) userXp(name, userID string, msg *dg.MessageCreate) (MsgEmbed, e
 	return &dg.MessageEmbed{Description: fmt.Sprintf("%s has a total of %.2f xp", name, xp)}, nil
 }
 
+// Currently not used; needs a way to look up nicknames before checking the actual
+// usernames to avoid returning incorrect data.
 func (x *System) findUserID(userName string, msg *dg.MessageCreate) (string, error) {
 	var (
 		members []*dg.Member

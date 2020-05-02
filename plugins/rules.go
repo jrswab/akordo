@@ -33,12 +33,14 @@ func (a *Agreement) Handler(req []string, msg *dg.MessageCreate) (string, error)
 	if len(req) < 2 {
 		return "Usage: <prefix>rules agreed", nil
 	}
+
 	switch req[1] {
 	case "set":
 		return a.addAgreementRole(req[2], msg)
 	case "agreed":
 		return a.ruleAgreement(msg)
 	}
+
 	return "Usage: <prefix>rules agreed", nil
 }
 
@@ -47,7 +49,8 @@ func (a *Agreement) ruleAgreement(msg *dg.MessageCreate) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("GuildMemberRoleAdd() failed: %s", err)
 	}
-	return "User Added :ok_hand:", nil
+
+	return "Added :ok_hand:", nil
 }
 
 func (a *Agreement) addAgreementRole(roleID string, msg *dg.MessageCreate) (string, error) {
@@ -99,12 +102,12 @@ func (a *Agreement) saveRole(filePath string) error {
 
 // LoadAgreementRole loads the saved json into the struct of banned words
 func (a *Agreement) LoadAgreementRole(filePath string) error {
-	savedBannedWords, err := ioutil.ReadFile(filePath)
+	baseRole, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(savedBannedWords, &a.BaseRole)
+	err = json.Unmarshal(baseRole, &a.BaseRole)
 	if err != nil {
 		return err
 	}

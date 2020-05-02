@@ -13,7 +13,7 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-const version string = "v0.10.1"
+const version string = "v0.11.0"
 
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
@@ -102,7 +102,7 @@ func (sd *SessionData) checkMessage(msg *dg.MessageCreate) {
 
 	sd.ExecuteTask(msg)
 
-	// Remove bot command after the bot replies
+	// Remove command after the bot replies
 	err = sd.session.ChannelMessageDelete(msg.ChannelID, msg.ID)
 	if err != nil {
 		log.Printf("failed to delete message after bot reply: %s", err)
@@ -117,9 +117,10 @@ func (sd *SessionData) checkMessage(msg *dg.MessageCreate) {
 // If the plugin is new create a new `.go` file under the `plugins` directory.
 func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	var (
-		res string
-		emb *dg.MessageEmbed
-		err error
+		res    string
+		emb    *dg.MessageEmbed
+		err    error
+		delete bool
 	)
 
 	// Split the string to a slice to parse parameters
@@ -149,6 +150,7 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 	case sd.prefix + "rule34":
 		res, err = sd.r34Request.Rule34(req, sd.session, msg)
 	case sd.prefix + "rules":
+		delete = true
 		res, err = sd.Rules.Handler(req, msg)
 	case sd.prefix + "version":
 		msgType = "embed"
@@ -165,26 +167,39 @@ func (sd *SessionData) ExecuteTask(msg *dg.MessageCreate) {
 		return
 	}
 
-	sd.reply(res, msgType, emb, msg)
+	sd.reply(res, msgType, delete, emb, msg)
 }
 
 // Reply takes the executed data and replies to the user. This is either in the channel
 // where the command was sent or as a direct message to the user.
-func (sd *SessionData) reply(res, msgType string, emb *dg.MessageEmbed, msg *dg.MessageCreate) {
+func (sd *SessionData) reply(res, msgType string, shouldDelete bool, emb *dg.MessageEmbed, msg *dg.MessageCreate) {
 	s := sd.session
+	var (
+		botMsg *dg.Message
+		err    error
+	)
 
+	// Determine bot output method.
 	switch msgType {
 	case "dm":
 		sd.sendAsDM(res, msg)
 	case "embed":
-		_, err := s.ChannelMessageSendEmbed(msg.ChannelID, emb)
+		botMsg, err = s.ChannelMessageSendEmbed(msg.ChannelID, emb)
 		if err != nil {
 			log.Printf("reply ChannelMessageSendEmbed failed: %s", err)
 		}
 	case "chan":
-		_, err := s.ChannelMessageSend(msg.ChannelID, res)
+		botMsg, err = s.ChannelMessageSend(msg.ChannelID, res)
 		if err != nil {
 			log.Printf("reply ChannelMessageSend failed: %s", err)
+		}
+	}
+
+	// Delete bot reply if true
+	if shouldDelete {
+		err = sd.session.ChannelMessageDelete(botMsg.ChannelID, botMsg.ID)
+		if err != nil {
+			log.Printf("failed to delete message after bot reply: %s", err)
 		}
 	}
 }
