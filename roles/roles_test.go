@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"testing"
 
-	"git.sr.ht/~jrswab/akordo/roles/mocks"
-	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
 	"github.com/stretchr/testify/mock"
+	"gitlab.com/technonauts/akordo/roles/mocks"
+	"gitlab.com/technonauts/akordo/xp"
 )
 
 func TestNewRoleStorage(t *testing.T) {

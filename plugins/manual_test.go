@@ -3,8 +3,8 @@ package plugins
 import (
 	"testing"
 
-	man "git.sr.ht/~jrswab/akordo/manuals"
 	dg "github.com/bwmarrin/discordgo"
+	man "gitlab.com/technonauts/akordo/manuals"
 )
 
 func TestManual(t *testing.T) {

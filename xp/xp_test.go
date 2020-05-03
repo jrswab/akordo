@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	p "git.sr.ht/~jrswab/akordo/plugins"
 	dg "github.com/bwmarrin/discordgo"
+	p "gitlab.com/technonauts/akordo/plugins"
 )
 
 func TestNewXpStore(t *testing.T) {

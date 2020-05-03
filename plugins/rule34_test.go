@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"git.sr.ht/~jrswab/akordo/plugins/mocks"
 	dg "github.com/bwmarrin/discordgo"
 	"github.com/stretchr/testify/mock"
+	"gitlab.com/technonauts/akordo/plugins/mocks"
 )
 
 func TestRule34Request_Rule34(t *testing.T) {

@@ -7,9 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	p "git.sr.ht/~jrswab/akordo/plugins"
-	"git.sr.ht/~jrswab/akordo/xp/mocks"
 	dg "github.com/bwmarrin/discordgo"
+	p "gitlab.com/technonauts/akordo/plugins"
+	"gitlab.com/technonauts/akordo/xp/mocks"
 )
 
 func TestSystem_Execute(t *testing.T) {

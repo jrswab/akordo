@@ -3,8 +3,8 @@ package plugins
 import (
 	"fmt"
 
-	man "git.sr.ht/~jrswab/akordo/manuals"
 	dg "github.com/bwmarrin/discordgo"
+	man "gitlab.com/technonauts/akordo/manuals"
 )
 
 // Manual is triggered when a user passes `prefix man <command name>`
