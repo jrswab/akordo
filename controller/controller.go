@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"sync"
 
-	plugs "git.sr.ht/~jrswab/akordo/plugins"
-	"git.sr.ht/~jrswab/akordo/roles"
-	"git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
+	plugs "gitlab.com/technonauts/akordo/plugins"
+	"gitlab.com/technonauts/akordo/roles"
+	"gitlab.com/technonauts/akordo/xp"
 )
 
 const version string = "v0.11.0"

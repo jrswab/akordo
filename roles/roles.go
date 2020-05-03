@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strconv"
 
-	"git.sr.ht/~jrswab/akordo/xp"
-	x "git.sr.ht/~jrswab/akordo/xp"
 	dg "github.com/bwmarrin/discordgo"
+	"gitlab.com/technonauts/akordo/xp"
+	x "gitlab.com/technonauts/akordo/xp"
 )
 
 // SelfAssignFile is the path were tha self assign role data is located

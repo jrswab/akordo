@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"git.sr.ht/~jrswab/akordo/controller"
-	"git.sr.ht/~jrswab/akordo/load"
 	"github.com/bwmarrin/discordgo"
+	"gitlab.com/technonauts/akordo/controller"
+	"gitlab.com/technonauts/akordo/load"
 )
 
 var token string

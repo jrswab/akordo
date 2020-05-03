@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	p "git.sr.ht/~jrswab/akordo/plugins"
 	dg "github.com/bwmarrin/discordgo"
+	p "gitlab.com/technonauts/akordo/plugins"
 )
 
 // XpFile is the path where the xp data is saved.

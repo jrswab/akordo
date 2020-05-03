@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	plugs "git.sr.ht/~jrswab/akordo/plugins"
+	plugs "gitlab.com/technonauts/akordo/plugins"
 )
 
 func (c *controller) checkWords() {

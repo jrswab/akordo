@@ -4,10 +4,10 @@ import (
 	"log"
 	"os"
 
-	"git.sr.ht/~jrswab/akordo/controller"
-	"git.sr.ht/~jrswab/akordo/plugins"
-	"git.sr.ht/~jrswab/akordo/roles"
-	"git.sr.ht/~jrswab/akordo/xp"
+	"gitlab.com/technonauts/akordo/controller"
+	"gitlab.com/technonauts/akordo/plugins"
+	"gitlab.com/technonauts/akordo/roles"
+	"gitlab.com/technonauts/akordo/xp"
 )
 
 // SavedData loads all saved dato to the correct structs for the specified commands.
