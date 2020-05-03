@@ -85,7 +85,7 @@ func TestMemeRequest_RequestMeme(t *testing.T) {
 		{
 			name: "meme list",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: ts.URL,
 			},
 			args: args{
@@ -106,7 +106,7 @@ func TestMemeRequest_RequestMeme(t *testing.T) {
 		{
 			name: "les than 3 args and not list",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: ts.URL,
 			},
 			args: args{
@@ -127,7 +127,7 @@ func TestMemeRequest_RequestMeme(t *testing.T) {
 		{
 			name: "Command with more than 3 arguments",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: ts.URL,
 			},
 			args: args{
@@ -148,7 +148,7 @@ func TestMemeRequest_RequestMeme(t *testing.T) {
 		{
 			name: "Requested too soon",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: ts.URL,
 			},
 			args: args{
@@ -163,13 +163,13 @@ func TestMemeRequest_RequestMeme(t *testing.T) {
 					},
 				},
 			},
-			want:    "user3 please wait 120 seconds before requesting the same command.",
+			want:    fmt.Sprintf("user3 please wait %d seconds before requesting the same command.", CommandDelay),
 			wantErr: false,
 		},
 		{
 			name: "Correct URL",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: fmt.Sprintf("%s/", ts.URL),
 			},
 			args: args{
@@ -190,7 +190,7 @@ func TestMemeRequest_RequestMeme(t *testing.T) {
 		{
 			name: "Bad URL",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: "wron.gurl",
 			},
 			args: args{

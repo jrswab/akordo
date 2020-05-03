@@ -56,7 +56,7 @@ func TestRule34Request_Rule34(t *testing.T) {
 		{
 			name: "Catch sfw channel",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: fmt.Sprintf("%s?page=dapi&s=post&q=index&tags=", ts.URL),
 			},
 			args: args{
@@ -78,7 +78,7 @@ func TestRule34Request_Rule34(t *testing.T) {
 		{
 			name: "Catch improper command format",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: fmt.Sprintf("%s?page=dapi&s=post&q=index&tags=", ts.URL),
 			},
 			args: args{
@@ -100,7 +100,7 @@ func TestRule34Request_Rule34(t *testing.T) {
 		{
 			name: "Requested too soon",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: fmt.Sprintf("%s?page=dapi&s=post&q=index&tags=", ts.URL),
 			},
 			args: args{
@@ -116,13 +116,13 @@ func TestRule34Request_Rule34(t *testing.T) {
 					},
 				},
 			},
-			want:    "user2 please wait 120 seconds before requesting the same command.",
+			want:    fmt.Sprintf("user2 please wait %d seconds before requesting the same command.", CommandDelay),
 			wantErr: false,
 		},
 		{
 			name: "Return message on incorrect formatting",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: fmt.Sprintf("%s?page=dapi&s=post&q=index&tags=", ts.URL),
 			},
 			args: args{
@@ -143,7 +143,7 @@ func TestRule34Request_Rule34(t *testing.T) {
 		{
 			name: "Invalid URL",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: "fake.url",
 			},
 			args: args{
@@ -164,7 +164,7 @@ func TestRule34Request_Rule34(t *testing.T) {
 		{
 			name: "Valid URL",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: fmt.Sprintf("%s?page=dapi&s=post&q=index&tags=", ts.URL),
 			},
 			args: args{

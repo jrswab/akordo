@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -16,7 +17,7 @@ func TestNewRecorder(t *testing.T) {
 	}{
 		{
 			name: "Create the Record struct",
-			want: &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+			want: &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 		},
 	}
 	for _, tt := range tests {
@@ -49,7 +50,7 @@ func TestRecord_checkLastAsk(t *testing.T) {
 		{
 			name: "User executed same command too soon",
 			fields: fields{
-				MinWaitTime: 2 * time.Minute,
+				MinWaitTime: botDelay,
 				LastReq:     userMap,
 			},
 			args: args{
@@ -62,13 +63,13 @@ func TestRecord_checkLastAsk(t *testing.T) {
 					},
 				},
 			},
-			want:     "user1 please wait 120 seconds before requesting the same command.",
+			want:     fmt.Sprintf("user1 please wait %d seconds before requesting the same command.", CommandDelay),
 			wantBool: true,
 		},
 		{
 			name: "User executed same command after timeout",
 			fields: fields{
-				MinWaitTime: 2 * time.Minute,
+				MinWaitTime: botDelay,
 				LastReq:     userMap,
 			},
 			args: args{

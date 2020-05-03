@@ -41,7 +41,7 @@ func TestGifRequest_Gif(t *testing.T) {
 		{
 			name: "Requested too soon",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: ts.URL,
 			},
 			args: args{
@@ -56,13 +56,13 @@ func TestGifRequest_Gif(t *testing.T) {
 					},
 				},
 			},
-			want:    "user please wait 120 seconds before requesting the same command.",
+			want:    fmt.Sprintf("user please wait %d seconds before requesting the same command.", CommandDelay),
 			wantErr: false,
 		},
 		{
 			name: "Return message on incorrect formatting",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: ts.URL,
 			},
 			args: args{
@@ -83,7 +83,7 @@ func TestGifRequest_Gif(t *testing.T) {
 		{
 			name: "Invalid URL",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: "fake.url",
 			},
 			args: args{
@@ -104,7 +104,7 @@ func TestGifRequest_Gif(t *testing.T) {
 		{
 			name: "Receive URL",
 			fields: fields{
-				record:  &Record{LastReq: userMap, MinWaitTime: (2 * time.Minute)},
+				record:  &Record{LastReq: userMap, MinWaitTime: (botDelay)},
 				baseURL: fmt.Sprintf("%s/?rating=pg", ts.URL),
 			},
 			args: args{

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Auto deletion of bot reply for `rules agreed`
+- Created limiter for XP gain on messages received.
+- Created constant MessageDelay and botDelay to allow customization of timeouts.
+- Set Default timeout to 90s instead of 120s
 
 ### Fixed
 - Auto promote to promote to add any matching role.

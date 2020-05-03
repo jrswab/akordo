@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -27,7 +28,7 @@ func TestRecord_Pong(t *testing.T) {
 			name: "Requested too soon",
 			fields: fields{
 				LastReq:     userMap,
-				MinWaitTime: (2 * time.Minute),
+				MinWaitTime: (botDelay),
 			},
 			args: args{
 				msg: &dg.MessageCreate{
@@ -39,13 +40,13 @@ func TestRecord_Pong(t *testing.T) {
 					},
 				},
 			},
-			want: "user1 please wait 120 seconds before requesting the same command.",
+			want: fmt.Sprintf("user1 please wait %d seconds before requesting the same command.", CommandDelay),
 		},
 		{
 			name: "Return pong",
 			fields: fields{
 				LastReq:     userMap,
-				MinWaitTime: (2 * time.Minute),
+				MinWaitTime: (botDelay),
 			},
 			args: args{
 				msg: &dg.MessageCreate{

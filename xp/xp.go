@@ -13,6 +13,7 @@ import (
 // XpFile is the path where the xp data is saved.
 const XpFile string = "data/xp.json"
 const messagePoints float64 = 0.01
+const maximumMessageLength = 200
 
 // AkSession allows for tests to mock discordgo session method calls
 type AkSession interface {
@@ -81,6 +82,11 @@ func (x *System) awardActivity(msg *dg.MessageCreate) {
 	// Don't award points to bots
 	if msg.Author.Bot {
 		return
+	}
+
+	// If messageLegth exceeds the maximum length for awards, limit it.
+	if award > maximumMessageLength {
+		award = maximumMessageLength
 	}
 
 	x.writeToXpMap(user, float64(award), messagePoints)
