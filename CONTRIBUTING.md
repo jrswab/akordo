@@ -7,14 +7,15 @@
 6. Add all changes and updates to `CHANGELOG.md` under "Unrelased".
 7. Start a merge request with this repository.
 
-# The preferred contribution approach:
-1. Clone
+## Technonaut Group Developers
+1. Update the master branch
 2. Make a branch named with your fix or new feature
 3. Code
 4. Run the unit tests
 5. Update tests as needed
 6. Add all changes and updates to `CHANGELOG.md` under "Unrelased".
 7. Push your branch to this repository.
+8. Create a merge request.
 
 ## Expected Code Style
 - Use the Go Tools for auto formatting.
