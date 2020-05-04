@@ -64,7 +64,7 @@ func (c *clear) clearMSGs(toDeleteID string, msg *dg.MessageCreate) error {
 	log.Println(msgIDs)
 	err = c.dgs.ChannelMessagesBulkDelete(msg.ChannelID, msgIDs)
 	if err != nil {
-
+		return fmt.Errorf("ChannelMessageBulkDelete failed: %s", err)
 	}
 	return nil
 }
