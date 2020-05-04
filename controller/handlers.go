@@ -72,7 +72,7 @@ func (c *controller) cmdHandler() {
 
 	case sd.prefix + "clear":
 		c.msgType = "none"
-		err = sd.clear.ClearHandler(msg)
+		err = sd.clear.ClearHandler(req, msg)
 
 	case sd.prefix + "crypto":
 		c.response, err = sd.crypto.Game(req, msg)

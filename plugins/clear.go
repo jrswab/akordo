@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	"strings"
 
 	dg "github.com/bwmarrin/discordgo"
 )
 
 // Eraser is the interface for interacting with the clear package.
 type Eraser interface {
-	ClearHandler(msg *dg.MessageCreate) error
+	ClearHandler(request []string, msg *dg.MessageCreate) error
 }
 
 type clear struct {
@@ -23,11 +25,23 @@ func NewEraser(s *dg.Session) Eraser {
 }
 
 // ClearHandler controls what method is triggered based on the user's command.
-func (c *clear) ClearHandler(msg *dg.MessageCreate) error {
-	botID, _ := os.LookupEnv("BOT_ID")
-	err := c.clearMSGs(botID, msg)
-	if err != nil {
-		return fmt.Errorf("ClearHandler failed: %s", err)
+func (c *clear) ClearHandler(request []string, msg *dg.MessageCreate) error {
+	switch len(request) {
+	case 1:
+		botID, _ := os.LookupEnv("BOT_ID")
+		err := c.clearMSGs(botID, msg)
+		if err != nil {
+			return fmt.Errorf("ClearHandler failed: %s", err)
+		}
+	case 2:
+		userID, err := c.findUserID(request[1], msg)
+		if err != nil {
+			return fmt.Errorf("ClearHandler failed: %s", err)
+		}
+		err = c.clearMSGs(userID, msg)
+		if err != nil {
+			return fmt.Errorf("ClearHandler failed: %s", err)
+		}
 	}
 
 	return nil
@@ -53,4 +67,58 @@ func (c *clear) clearMSGs(toDeleteID string, msg *dg.MessageCreate) error {
 
 	}
 	return nil
+}
+
+func (c *clear) findUserID(userName string, msg *dg.MessageCreate) (string, error) {
+	var (
+		id      string
+		members []*dg.Member
+		err     error
+	)
+
+	var re = regexp.MustCompile("(?m)^<@!\\w+>")
+	match := re.MatchString(userName)
+	if match {
+		id = strings.TrimPrefix(userName, "<@!")
+		id = strings.TrimSuffix(id, ">")
+		return id, nil
+	}
+
+	// Get first round of members
+	current, err := c.dgs.GuildMembers(msg.GuildID, "", 1000)
+	if err != nil {
+		return "", err
+	}
+
+	for _, names := range current {
+		members = append(members, names)
+	}
+
+	// if first round has 1000 entries run again until all members are present.
+	for len(current) == 1000 {
+		lastMember := current[len(current)-1]
+		current, err = c.dgs.GuildMembers(msg.GuildID, lastMember.User.ID, 1000)
+		if err != nil {
+			return "", err
+		}
+
+		for _, names := range current {
+			members = append(members, names)
+		}
+
+	}
+
+	for _, member := range members {
+		if member.Nick == userName {
+			id = member.User.ID
+			break
+		}
+
+		if member.User.Username == userName {
+			id = member.User.ID
+			break
+		}
+	}
+
+	return id, nil
 }

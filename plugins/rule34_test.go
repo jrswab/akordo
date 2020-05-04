@@ -73,7 +73,7 @@ func TestRule34Request_Rule34(t *testing.T) {
 				},
 			},
 			want:    "",
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "Catch improper command format",
