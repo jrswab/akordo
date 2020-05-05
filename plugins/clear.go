@@ -26,22 +26,19 @@ func NewEraser(s *dg.Session) Eraser {
 
 // ClearHandler controls what method is triggered based on the user's command.
 func (c *clear) ClearHandler(request []string, msg *dg.MessageCreate) error {
+	var err error
+	var userID string
 	switch len(request) {
 	case 1:
 		botID, _ := os.LookupEnv("BOT_ID")
-		err := c.clearMSGs(botID, msg)
-		if err != nil {
-			return fmt.Errorf("ClearHandler failed: %s", err)
-		}
+		err = c.clearMSGs(botID, msg)
 	case 2:
-		userID, err := c.findUserID(request[1], msg)
-		if err != nil {
-			return fmt.Errorf("ClearHandler failed: %s", err)
-		}
+		userID, err = c.findUserID(request[1], msg)
 		err = c.clearMSGs(userID, msg)
-		if err != nil {
-			return fmt.Errorf("ClearHandler failed: %s", err)
-		}
+	}
+
+	if err != nil {
+		return fmt.Errorf("ClearHandler failed: %s", err)
 	}
 
 	return nil
@@ -52,7 +49,6 @@ func (c *clear) clearMSGs(toDeleteID string, msg *dg.MessageCreate) error {
 	if err != nil {
 		return fmt.Errorf("clearMSGs failed: %s", err)
 	}
-	log.Println(messages)
 
 	msgIDs := []string{}
 	for _, m := range messages {
@@ -99,7 +95,7 @@ func (c *clear) findUserID(userName string, msg *dg.MessageCreate) (string, erro
 		lastMember := current[len(current)-1]
 		current, err = c.dgs.GuildMembers(msg.GuildID, lastMember.User.ID, 1000)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("GuildMembers failed: %s", err)
 		}
 
 		for _, names := range current {
