@@ -95,8 +95,16 @@ func Test_roleSystem_LoadSelfAssignRoles(t *testing.T) {
 func Test_roleSystem_ExecuteRoleCommands(t *testing.T) {
 	testRoleMap := make(map[string]string)
 	testRoleMap["Golang"] = "12345"
-	var testRoleOutput string
 
+	testRoleMap2 := make(map[string]float64)
+	testRoleMap2["Golang"] = 12345.00
+	testRoleMap2["Rust"] = 54321.00
+
+	var sortedList string
+	sortedList = fmt.Sprintf("%s\n%s: %.2f", sortedList, "Golang", float64(12345))
+	sortedList = fmt.Sprintf("%s\n%s: %.2f", sortedList, "Rust", float64(54321))
+
+	var testRoleOutput string
 	for role := range testRoleMap {
 		testRoleOutput = fmt.Sprintf("%s\n%s", testRoleOutput, role)
 	}
@@ -116,8 +124,10 @@ func Test_roleSystem_ExecuteRoleCommands(t *testing.T) {
 	testDGS.On("GuildMemberRoleRemove", "0", "0000", "12345").Return(nil).Once()
 
 	type fields struct {
-		dgs DgSession
-		sar *roleStorage
+		dgs   DgSession
+		sar   *roleStorage
+		tiers *autoRanks
+		xp    *xp.System
 	}
 	type args struct {
 		req []string
@@ -266,12 +276,31 @@ func Test_roleSystem_ExecuteRoleCommands(t *testing.T) {
 			want:    &dg.MessageEmbed{Description: notListed},
 			wantErr: false,
 		},
+		{
+			name: "lar: List ranks in sorted order",
+			fields: fields{
+				dgs: testDGS,
+				sar: &roleStorage{
+					SelfRoles: testRoleMap,
+				},
+				tiers: &autoRanks{Tiers: testRoleMap2},
+			},
+			args: args{
+				req: []string{"cmd", "lar"},
+				msg: &dg.MessageCreate{
+					&dg.Message{GuildID: "0", Author: &dg.User{Username: "User1", ID: "0000"}},
+				},
+			},
+			want:    &dg.MessageEmbed{Title: "Auto Rank XP", Description: sortedList},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &roleSystem{
-				dgs: tt.fields.dgs,
-				sar: tt.fields.sar,
+				dgs:   tt.fields.dgs,
+				sar:   tt.fields.sar,
+				tiers: tt.fields.tiers,
 			}
 			got, err := r.ExecuteRoleCommands(tt.args.req, tt.args.msg)
 			if (err != nil) != tt.wantErr {

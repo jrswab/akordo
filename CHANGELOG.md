@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gif request details to return with the URL
 - Environment variable string names as a constant to plugins.go
 - "help" as an alias to the "man" command
+- Test for roles lar command
 
 ### Changed
 - BanndeWords error messages
