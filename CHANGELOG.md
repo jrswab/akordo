@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test for roles lar command
 
 ### Changed
-- BanndeWords error messages
+- BannedWords error messages
 
 ### Removed
 - log output of user's messages on clear
