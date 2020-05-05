@@ -57,11 +57,10 @@ func (b *Blacklist) CheckBannedWords(msg *dg.MessageCreate) (bool, error) {
 		if b.data.Editors[role] {
 			return false, nil
 		}
-
 	}
 
 	// Ignore bot owner messages
-	if msg.Author.ID == os.Getenv("BOT_OWNER") {
+	if msg.Author.ID == os.Getenv(botOwner) {
 		return false, nil
 	}
 
@@ -88,7 +87,7 @@ func (b *Blacklist) addBlacklistWord(req []string, msg *dg.MessageCreate) (strin
 
 	err := b.saveWordList(BannedWordsPath)
 	if err != nil {
-		return "", fmt.Errorf("error saving word list: %s", err)
+		return "", fmt.Errorf("error saving new word to list: %s", err)
 	}
 
 	return "Word(s) added to the blacklist", nil
@@ -101,7 +100,7 @@ func (b *Blacklist) removeBlacklistWord(req []string, msg *dg.MessageCreate) (st
 
 	err := b.saveWordList(BannedWordsPath)
 	if err != nil {
-		return "", fmt.Errorf("error saving word list: %s", err)
+		return "", fmt.Errorf("error saving word removal to list: %s", err)
 	}
 
 	return "Word(s) removed from the blacklist", nil
@@ -137,11 +136,9 @@ func (b *Blacklist) LoadBannedWordList(filePath string) error {
 
 func (b *Blacklist) addedEditors(roleID string, msg *dg.MessageCreate) (string, error) {
 	// Look up the bot owner's discord ID
-	ownerID, found := os.LookupEnv("BOT_OWNER")
+	ownerID, found := os.LookupEnv(botOwner)
 	if !found {
-		return "", fmt.Errorf(
-			"banned words addEditors() failed: \"BOT_OWNER\" environment variable not found",
-		)
+		return "", fmt.Errorf("banned words addEditors() failed: %s environment variable not found", botOwner)
 	}
 
 	// Make sure the bot owner is executing the command
@@ -164,7 +161,7 @@ func (b *Blacklist) addedEditors(roleID string, msg *dg.MessageCreate) (string, 
 	// Save the updates
 	err := b.saveWordList(BannedWordsPath)
 	if err != nil {
-		return "", fmt.Errorf("error saving word list: %s", err)
+		return "", fmt.Errorf("error saving editor to word list: %s", err)
 	}
 	return "Role added as an editor", nil
 }

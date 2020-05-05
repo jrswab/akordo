@@ -34,7 +34,7 @@ func TestManual(t *testing.T) {
 				s:   &dg.Session{},
 				msg: &dg.MessageCreate{},
 			},
-			want: "",
+			want: "Sorry, I don't have a manual for that :confused:",
 		},
 		{
 			name: "Return gif",

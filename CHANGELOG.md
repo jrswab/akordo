@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Gif request details to return with the URL
+- Environment variable string names as a constant to plugins.go
+- "help" as an alias to the "man" command
+
+### Changed
+- BanndeWords error messages
+
+### Removed
+- log output of user's messages on clear
 
 ## v0.11.0
 ### Added

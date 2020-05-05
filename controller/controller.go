@@ -87,7 +87,10 @@ func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
 func (c *controller) checkMessage() {
 	sd := c.sess
 
-	c.checkWords()
+	err := c.checkWords()
+	if err != nil {
+		log.Printf("checkWords failed: %s", err)
+	}
 
 	isCMD := c.determineIfCmd()
 	if !isCMD {
@@ -98,7 +101,7 @@ func (c *controller) checkMessage() {
 	c.cmdHandler()
 
 	// Remove command after the bot replies
-	err := sd.session.ChannelMessageDelete(c.msg.ChannelID, c.msg.ID)
+	err = sd.session.ChannelMessageDelete(c.msg.ChannelID, c.msg.ID)
 	if err != nil {
 		log.Printf("failed to delete message after bot reply: %s", err)
 	}

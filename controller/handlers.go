@@ -9,20 +9,21 @@ import (
 	plugs "gitlab.com/technonauts/akordo/plugins"
 )
 
-func (c *controller) checkWords() {
+func (c *controller) checkWords() error {
 	sd := c.sess
 	// Check for blacklisted words
 	isBlacklisted, err := sd.Blacklist.CheckBannedWords(c.msg)
 	if err != nil {
-		log.Printf("CheckBannedWords() failed: %s", err)
+		return fmt.Errorf("CheckBannedWords() failed: %s", err)
 	}
 	if isBlacklisted {
 		reason := "Kicked for inappropriate language."
 		err := sd.session.GuildMemberDeleteWithReason(c.msg.GuildID, c.msg.Author.ID, reason)
 		if err != nil {
-			log.Printf("GuildMemberDeleteWithReason() failed: %s", err)
+			return fmt.Errorf("GuildMemberDeleteWithReason() failed: %s", err)
 		}
 	}
+	return nil
 }
 
 func (c *controller) determineIfCmd() bool {
@@ -79,6 +80,10 @@ func (c *controller) cmdHandler() {
 
 	case sd.prefix + "gif":
 		c.response, err = sd.gifRequest.Gif(req, sd.session, msg)
+
+	case sd.prefix + "help":
+		c.msgType = "dm"
+		c.response = plugs.Manual(req, sd.session, msg)
 
 	case sd.prefix + "man":
 		c.msgType = "dm"

@@ -28,5 +28,5 @@ func Manual(req []string, s *dg.Session, msg *dg.MessageCreate) string {
 	case "rule34":
 		return man.Rule34
 	}
-	return ""
+	return "Sorry, I don't have a manual for that :confused:"
 }
