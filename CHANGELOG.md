@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Methods to AkSession interface
+- Tests for plugins/clear.go
+
 ## v 0.12.0
 ### Added
 - Gif request details to return with the URL
