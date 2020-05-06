@@ -1,6 +1,9 @@
 # Akordo
 A Discord chat bot written by the members of the Technonauts chat group.
 
+[![pipeline status](https://gitlab.com/technonauts/akordo/badges/master/pipeline.svg)](https://gitlab.com/technonauts/akordo/-/commits/master)
+[![coverage report](https://gitlab.com/technonauts/akordo/badges/master/coverage.svg)](https://gitlab.com/technonauts/akordo/-/commits/master)
+
 [Join the Technonauts!](https://discord.gg/A2uuCUr)
 
 ## Using the Bot:
