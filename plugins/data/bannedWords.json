@@ -1,0 +1,10 @@
+{
+  "editors": {
+    "11111": true,
+    "12345": true
+  },
+  "blacklist": {
+    "badWord": true,
+    "test": false
+  }
+}

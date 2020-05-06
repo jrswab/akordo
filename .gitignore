@@ -7,7 +7,9 @@
 
 # Project generated files
 akordo*
-data/
+
+# Main data files to store user data
+data/*
 
 # Test binary, built with `go test -c`
 *.test
