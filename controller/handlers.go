@@ -9,21 +9,24 @@ import (
 	"gitlab.com/technonauts/akordo/manuals"
 )
 
-func (c *controller) checkWords() error {
+func (c *controller) checkWords() (bool, error) {
 	sd := c.sess
+
 	// Check for blacklisted words
 	isBlacklisted, err := sd.Blacklist.CheckBannedWords(c.msg)
 	if err != nil {
-		return fmt.Errorf("CheckBannedWords() failed: %s", err)
+		return false, fmt.Errorf("CheckBannedWords() failed: %s", err)
 	}
+
+	// Kick user with a message if the word is on the banned words list.
 	if isBlacklisted {
 		reason := "Kicked for inappropriate language."
 		err := sd.session.GuildMemberDeleteWithReason(c.msg.GuildID, c.msg.Author.ID, reason)
 		if err != nil {
-			return fmt.Errorf("GuildMemberDeleteWithReason() failed: %s", err)
+			return false, fmt.Errorf("GuildMemberDeleteWithReason() failed: %s", err)
 		}
 	}
-	return nil
+	return false, nil
 }
 
 func (c *controller) determineIfCmd() bool {
@@ -32,13 +35,17 @@ func (c *controller) determineIfCmd() bool {
 	regEx := fmt.Sprintf("(?m)^%s(\\w|\\s)+", sd.prefix)
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(c.msg.Content)
-	if match {
-		return true
+	if !match {
+		return false
 	}
+	return true
+}
 
+func (c *controller) awardXP() {
+	sd := c.sess
 	exempt := xpExemptions(c.msg.Content)
 	if exempt {
-		return false
+		return
 	}
 
 	// Add xp for all non-bot messages
@@ -50,7 +57,7 @@ func (c *controller) determineIfCmd() bool {
 		log.Printf("xp.AutoPromote failed: %s", err)
 	}
 
-	return false
+	return
 }
 
 // Handler looks up the command found by the bot and kicks off a Goroutine do what

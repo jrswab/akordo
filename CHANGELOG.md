@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## v 0.12.0
 ### Added
 - Gif request details to return with the URL
 - Environment variable string names as a constant to plugins.go
@@ -13,10 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - constant for using regexp on  a role ID
 - Authorized roles check before executing `clear <username>`
 - Tests for bannedWords.go
+- `awardXP()` method in the controller package
 
 ### Changed
 - BannedWords error messages
 - manual.go to be part of the manuals package
+- controller package to use a new deleteMessage methods
+- controller package to ignore bot commands in the banned word check
+- `determineIfCmd()` to return a boolean and removed all other executions
+- `checkWords()` to return a boolean
 
 ### Removed
 - log output of user's messages on clear
