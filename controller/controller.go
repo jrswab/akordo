@@ -23,7 +23,7 @@ type SessionData struct {
 
 	// Plugins:
 	Blacklist   *plugs.Blacklist
-	clear       plugs.Eraser
+	Clear       plugs.Eraser
 	crypto      *plugs.Crypto
 	gifRequest  *plugs.GifRequest
 	memeRequest *plugs.MemeRequest
@@ -50,7 +50,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 	// Commands that require the session for execution
 	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
 	sd.Roles = roles.NewRoleStorage(sd.session, sd.XP)
-	sd.clear = plugs.NewEraser(sd.session)
+	sd.Clear = plugs.NewEraser(sd.session)
 	sd.Blacklist = plugs.NewBlacklist(sd.session)
 	sd.Rules = plugs.NewAgreement(sd.session)
 
@@ -85,12 +85,23 @@ func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
 // CheckSyntax uses regexp from the standard library to check the message has the correct
 // prefix as defined by the `prefix` constant.
 func (c *controller) checkMessage() {
-	sd := c.sess
-
-	c.checkWords()
-
+	// If the message is not a command, award the user XP and ignore the rest of the function
 	isCMD := c.determineIfCmd()
 	if !isCMD {
+		c.awardXP()
+		return
+	}
+
+	// Check for banned words in the message.
+	foundBannedWord, err := c.checkWords()
+	if err != nil {
+		log.Printf("checkWords failed: %s", err)
+	}
+
+	// Stop execution if a banned word is found
+	if foundBannedWord {
+		// Remove the message
+		c.deleteMessage()
 		return
 	}
 
@@ -98,10 +109,17 @@ func (c *controller) checkMessage() {
 	c.cmdHandler()
 
 	// Remove command after the bot replies
+	c.deleteMessage()
+}
+
+func (c *controller) deleteMessage() error {
+	sd := c.sess
+
 	err := sd.session.ChannelMessageDelete(c.msg.ChannelID, c.msg.ID)
 	if err != nil {
 		log.Printf("failed to delete message after bot reply: %s", err)
 	}
+	return nil
 }
 
 // Reply takes the executed data and replies to the user. This is either in the channel

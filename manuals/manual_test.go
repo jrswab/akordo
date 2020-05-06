@@ -1,10 +1,9 @@
-package plugins
+package manuals
 
 import (
 	"testing"
 
 	dg "github.com/bwmarrin/discordgo"
-	man "gitlab.com/technonauts/akordo/manuals"
 )
 
 func TestManual(t *testing.T) {
@@ -34,7 +33,7 @@ func TestManual(t *testing.T) {
 				s:   &dg.Session{},
 				msg: &dg.MessageCreate{},
 			},
-			want: "",
+			want: "Sorry, I don't have a manual for that :confused:",
 		},
 		{
 			name: "Return gif",
@@ -43,7 +42,7 @@ func TestManual(t *testing.T) {
 				s:   &dg.Session{},
 				msg: &dg.MessageCreate{},
 			},
-			want: man.Gif,
+			want: gif,
 		},
 		{
 			name: "Return man",
@@ -52,7 +51,7 @@ func TestManual(t *testing.T) {
 				s:   &dg.Session{},
 				msg: &dg.MessageCreate{},
 			},
-			want: man.Man,
+			want: man,
 		},
 		{
 			name: "Return meme",
@@ -61,7 +60,7 @@ func TestManual(t *testing.T) {
 				s:   &dg.Session{},
 				msg: &dg.MessageCreate{},
 			},
-			want: man.Meme,
+			want: meme,
 		},
 		{
 			name: "Return ping",
@@ -70,7 +69,7 @@ func TestManual(t *testing.T) {
 				s:   &dg.Session{},
 				msg: &dg.MessageCreate{},
 			},
-			want: man.Ping,
+			want: ping,
 		},
 		{
 			name: "Return rule34",
@@ -79,7 +78,7 @@ func TestManual(t *testing.T) {
 				s:   &dg.Session{},
 				msg: &dg.MessageCreate{},
 			},
-			want: man.Rule34,
+			want: rule34,
 		},
 	}
 	for _, tt := range tests {

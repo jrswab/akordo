@@ -10,6 +10,10 @@ import (
 // CommandDelay is the time (in seconds) to restrict command spam. Exported for unit tests.
 const CommandDelay = 90
 const botDelay = CommandDelay * time.Second
+const atRoleID string = `(?m)^<@&\d+>$`
+
+// Environment variables for the plugins package.
+const botOwner = "BOT_OWNER"
 
 // AkSession allows for tests to mock the discordgo session.Channel() method call
 type AkSession interface {
@@ -29,6 +33,7 @@ func NewRecorder() *Record {
 	return &Record{LastReq: userMap, MinWaitTime: (botDelay)}
 }
 
+// CheckLastAsk checks the last time the user executed the specific command
 func (r *Record) CheckLastAsk(msg *dg.MessageCreate) (string, bool) {
 	last, found := r.LastReq[msg.Author.ID]
 	if found && time.Since(last) < (r.MinWaitTime) {

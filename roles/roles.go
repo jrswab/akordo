@@ -35,6 +35,7 @@ type Assigner interface {
 	AutoPromote(msg *dg.MessageCreate) error
 	LoadAutoRanks(file string) error
 }
+
 type roleSystem struct {
 	dgs   DgSession
 	xp    *xp.System

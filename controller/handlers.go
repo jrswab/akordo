@@ -6,23 +6,27 @@ import (
 	"regexp"
 	"strings"
 
-	plugs "gitlab.com/technonauts/akordo/plugins"
+	"gitlab.com/technonauts/akordo/manuals"
 )
 
-func (c *controller) checkWords() {
+func (c *controller) checkWords() (bool, error) {
 	sd := c.sess
+
 	// Check for blacklisted words
 	isBlacklisted, err := sd.Blacklist.CheckBannedWords(c.msg)
 	if err != nil {
-		log.Printf("CheckBannedWords() failed: %s", err)
+		return false, fmt.Errorf("CheckBannedWords() failed: %s", err)
 	}
+
+	// Kick user with a message if the word is on the banned words list.
 	if isBlacklisted {
 		reason := "Kicked for inappropriate language."
 		err := sd.session.GuildMemberDeleteWithReason(c.msg.GuildID, c.msg.Author.ID, reason)
 		if err != nil {
-			log.Printf("GuildMemberDeleteWithReason() failed: %s", err)
+			return false, fmt.Errorf("GuildMemberDeleteWithReason() failed: %s", err)
 		}
 	}
+	return false, nil
 }
 
 func (c *controller) determineIfCmd() bool {
@@ -31,13 +35,17 @@ func (c *controller) determineIfCmd() bool {
 	regEx := fmt.Sprintf("(?m)^%s(\\w|\\s)+", sd.prefix)
 	var re = regexp.MustCompile(regEx)
 	match := re.MatchString(c.msg.Content)
-	if match {
-		return true
+	if !match {
+		return false
 	}
+	return true
+}
 
+func (c *controller) awardXP() {
+	sd := c.sess
 	exempt := xpExemptions(c.msg.Content)
 	if exempt {
-		return false
+		return
 	}
 
 	// Add xp for all non-bot messages
@@ -49,7 +57,7 @@ func (c *controller) determineIfCmd() bool {
 		log.Printf("xp.AutoPromote failed: %s", err)
 	}
 
-	return false
+	return
 }
 
 // Handler looks up the command found by the bot and kicks off a Goroutine do what
@@ -72,7 +80,7 @@ func (c *controller) cmdHandler() {
 
 	case sd.prefix + "clear":
 		c.msgType = "none"
-		err = sd.clear.ClearHandler(req, msg)
+		err = sd.Clear.ClearHandler(req, msg)
 
 	case sd.prefix + "crypto":
 		c.response, err = sd.crypto.Game(req, msg)
@@ -80,9 +88,13 @@ func (c *controller) cmdHandler() {
 	case sd.prefix + "gif":
 		c.response, err = sd.gifRequest.Gif(req, sd.session, msg)
 
+	case sd.prefix + "help":
+		c.msgType = "dm"
+		c.response = manuals.Manual(req, sd.session, msg)
+
 	case sd.prefix + "man":
 		c.msgType = "dm"
-		c.response = plugs.Manual(req, sd.session, msg)
+		c.response = manuals.Manual(req, sd.session, msg)
 
 	case sd.prefix + "meme":
 		c.response, err = sd.memeRequest.RequestMeme(req, sd.session, msg)
