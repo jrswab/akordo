@@ -143,7 +143,7 @@ func (b *Blacklist) addedEditors(roleID string, msg *dg.MessageCreate) (string, 
 
 	// Make sure the bot owner is executing the command
 	if msg.Author.ID != ownerID {
-		return "This command is for the bot owner only ::", nil
+		return "This command is for the bot owner only :rage:", nil
 	}
 
 	// Make sure the string passed is the role ID

@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test for roles lar command
 - constant for using regexp on  a role ID
 - Authorized roles check before executing `clear <username>`
+- Tests for bannedWords.go
 
 ### Changed
 - BannedWords error messages
+- manual.go to be part of the manuals package
 
 ### Removed
 - log output of user's messages on clear

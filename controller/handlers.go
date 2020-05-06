@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	plugs "gitlab.com/technonauts/akordo/plugins"
+	"gitlab.com/technonauts/akordo/manuals"
 )
 
 func (c *controller) checkWords() error {
@@ -83,11 +83,11 @@ func (c *controller) cmdHandler() {
 
 	case sd.prefix + "help":
 		c.msgType = "dm"
-		c.response = plugs.Manual(req, sd.session, msg)
+		c.response = manuals.Manual(req, sd.session, msg)
 
 	case sd.prefix + "man":
 		c.msgType = "dm"
-		c.response = plugs.Manual(req, sd.session, msg)
+		c.response = manuals.Manual(req, sd.session, msg)
 
 	case sd.prefix + "meme":
 		c.response, err = sd.memeRequest.RequestMeme(req, sd.session, msg)

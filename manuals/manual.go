@@ -1,10 +1,9 @@
-package plugins
+package manuals
 
 import (
 	"fmt"
 
 	dg "github.com/bwmarrin/discordgo"
-	man "gitlab.com/technonauts/akordo/manuals"
 )
 
 // Manual is triggered when a user passes `prefix man <command name>`
@@ -18,15 +17,15 @@ func Manual(req []string, s *dg.Session, msg *dg.MessageCreate) string {
 
 	switch req[1] {
 	case "gif":
-		return man.Gif
+		return gif
 	case "man":
-		return man.Man
+		return man
 	case "meme":
-		return man.Meme
+		return meme
 	case "ping":
-		return man.Ping
+		return ping
 	case "rule34":
-		return man.Rule34
+		return rule34
 	}
 	return "Sorry, I don't have a manual for that :confused:"
 }

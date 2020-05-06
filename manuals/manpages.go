@@ -1,7 +1,7 @@
 package manuals
 
 // Gif is the man page for `<prefix>man gif`
-const Gif string = `
+const gif string = `
 Gif(1) User Commands Gif(1)
 
 NAME
@@ -20,7 +20,7 @@ EXAMPLE
 `
 
 // Man is the man page for `<prefix>man man`
-const Man string = `
+const man string = `
 Man(1) User Commands Man(1)
 
 NAME
@@ -39,7 +39,7 @@ EXAMPLE
 `
 
 // Meme is the man page for `<prefix>man man`
-const Meme string = `
+const meme string = `
 MEME(1) User Commands MEME(1)
 
 NAME
@@ -60,18 +60,18 @@ COMMAND SYNOPSIS
 
        <prefix>meme list
               Returns the template url on memegen.link with all available images.
-       
+
        <prefix>meme spongebob why_are_you here
               Returns the url to the newly created mocking spongebob meme with
               the top text "why are you" and the bottom text "here".
-       
+
        <prefix>meme spongebob why_are_you
               Returns the url to the newly created mocking spongebob meme with
               the top text "why are you" and no bottom text.
 `
 
 // Ping is the man page for `<prefix>man rule34`
-const Ping string = `
+const ping string = `
 PING(1) User Commands PING(1)
 
 NAME
@@ -88,7 +88,7 @@ EXAMPLE
 `
 
 // Rule34 is the man page for `<prefix>man rule34`
-const Rule34 string = `
+const rule34 string = `
 RULE34(1) User Commands RULE34(1)
 
 NAME
