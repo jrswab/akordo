@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Methods to AkSession interface
 - Tests for plugins/clear.go
+- Tests for plugins/rules.go
 
 ## v 0.12.0
 ### Added
