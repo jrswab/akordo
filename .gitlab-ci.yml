@@ -16,7 +16,6 @@ before_script:
 
 stages:
   - test
-  - build
   - deploy
 
 format:
@@ -27,10 +26,10 @@ format:
     #- go vet $(go list ./... | grep -v /vendor/)
     - go test -race $(go list ./... | grep -v /vendor/)
 
-compile:
-  stage: build
+Production:
+  stage: deploy
+  only:
+    - tags
   script:
     - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/akordo
-  artifacts:
-    paths:
-      - akordo
+    - ./$CI_PROJECT_DIR/akordo
