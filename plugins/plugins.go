@@ -19,6 +19,9 @@ const botOwner = "BOT_OWNER"
 type AkSession interface {
 	Channel(channelID string) (st *dg.Channel, err error)
 	GuildMemberRoleAdd(guildID, userID, roleID string) (err error)
+	ChannelMessages(channelID string, limit int, beforeID, afterID, aroundID string) (st []*dg.Message, err error)
+	ChannelMessagesBulkDelete(channelID string, messages []string) (err error)
+	GuildMembers(guildID string, after string, limit int) (st []*dg.Member, err error)
 }
 
 // Record holds the users last gif request to avoid spamming.

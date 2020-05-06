@@ -21,7 +21,7 @@ type Eraser interface {
 }
 
 type clear struct {
-	dgs   *dg.Session
+	dgs   AkSession
 	Authd *authorizedRoles `json:"authorizedRoles"`
 }
 
@@ -30,8 +30,9 @@ type authorizedRoles struct {
 }
 
 // NewEraser creates a new clear struct for using the clear methods
-func NewEraser(s *dg.Session) Eraser {
-	return &clear{dgs: s,
+func NewEraser(s AkSession) Eraser {
+	return &clear{
+		dgs: s,
 		Authd: &authorizedRoles{
 			roleID: make(map[string]bool),
 		},

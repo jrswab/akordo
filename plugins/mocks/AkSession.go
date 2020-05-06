@@ -35,6 +35,43 @@ func (_m *AkSession) Channel(channelID string) (*discordgo.Channel, error) {
 	return r0, r1
 }
 
+// ChannelMessages provides a mock function with given fields: channelID, limit, beforeID, afterID, aroundID
+func (_m *AkSession) ChannelMessages(channelID string, limit int, beforeID string, afterID string, aroundID string) ([]*discordgo.Message, error) {
+	ret := _m.Called(channelID, limit, beforeID, afterID, aroundID)
+
+	var r0 []*discordgo.Message
+	if rf, ok := ret.Get(0).(func(string, int, string, string, string) []*discordgo.Message); ok {
+		r0 = rf(channelID, limit, beforeID, afterID, aroundID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*discordgo.Message)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, string, string, string) error); ok {
+		r1 = rf(channelID, limit, beforeID, afterID, aroundID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ChannelMessagesBulkDelete provides a mock function with given fields: channelID, messages
+func (_m *AkSession) ChannelMessagesBulkDelete(channelID string, messages []string) error {
+	ret := _m.Called(channelID, messages)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+		r0 = rf(channelID, messages)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GuildMemberRoleAdd provides a mock function with given fields: guildID, userID, roleID
 func (_m *AkSession) GuildMemberRoleAdd(guildID string, userID string, roleID string) error {
 	ret := _m.Called(guildID, userID, roleID)
@@ -47,4 +84,27 @@ func (_m *AkSession) GuildMemberRoleAdd(guildID string, userID string, roleID st
 	}
 
 	return r0
+}
+
+// GuildMembers provides a mock function with given fields: guildID, after, limit
+func (_m *AkSession) GuildMembers(guildID string, after string, limit int) ([]*discordgo.Member, error) {
+	ret := _m.Called(guildID, after, limit)
+
+	var r0 []*discordgo.Member
+	if rf, ok := ret.Get(0).(func(string, string, int) []*discordgo.Member); ok {
+		r0 = rf(guildID, after, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*discordgo.Member)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
+		r1 = rf(guildID, after, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
