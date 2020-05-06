@@ -147,7 +147,9 @@ func TestBlacklist_CheckBannedWords(t *testing.T) {
 	mockData.Banned["badWord"] = true
 
 	sfwChan := &dg.Channel{ID: "00000", NSFW: false}
-	mockSession.On("Channel", "00000").Return(sfwChan, nil)
+	nsfwChan := &dg.Channel{ID: "10000", NSFW: true}
+	mockSession.On("Channel", "00000").Return(sfwChan, nil).Times(4)
+	mockSession.On("Channel", "00000").Return(nsfwChan, nil).Once()
 
 	type fields struct {
 		session AkSession
@@ -201,6 +203,63 @@ func TestBlacklist_CheckBannedWords(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "Check a command without banned word",
+			fields: fields{
+				session: mockSession,
+				data:    mockData,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						ChannelID: "00000",
+						Content:   "=man ping",
+						Author:    &dg.User{ID: "1111"},
+						Member:    &dg.Member{Roles: []string{"00000", "22222"}},
+					},
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "Check a command with banned word",
+			fields: fields{
+				session: mockSession,
+				data:    mockData,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						ChannelID: "00000",
+						Content:   "=man badWord",
+						Author:    &dg.User{ID: "1111"},
+						Member:    &dg.Member{Roles: []string{"00000", "22222"}},
+					},
+				},
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Allow inside NSFW channel",
+			fields: fields{
+				session: mockSession,
+				data:    mockData,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						ChannelID: "00000",
+						Content:   "badWord",
+						Author:    &dg.User{ID: "1111"},
+						Member:    &dg.Member{Roles: []string{"10000", "22222"}},
+					},
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -221,6 +280,9 @@ func TestBlacklist_CheckBannedWords(t *testing.T) {
 }
 
 func TestBlacklist_LoadBannedWordList(t *testing.T) {
+	mockSession := new(mocks.AkSession)
+	mockData := &data{Editors: make(map[string]bool), Banned: make(map[string]bool)}
+
 	type fields struct {
 		session AkSession
 		data    *data
@@ -234,7 +296,15 @@ func TestBlacklist_LoadBannedWordList(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Load from file",
+			fields: fields{
+				session: mockSession,
+				data:    mockData,
+			},
+			args:    args{filePath: "data/bannedWords.json"},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
