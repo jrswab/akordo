@@ -23,7 +23,7 @@ format:
   stage: test
   script:
     - go fmt $(go list ./... | grep -v /vendor/)
-    # Ignoring go vet since package imported package forces use of unkeyed fields in some structs
+    # Ignoring go vet since imported package forces the use of unkeyed fields in some structs
     #- go vet $(go list ./... | grep -v /vendor/)
     - go test -race $(go list ./... | grep -v /vendor/)
 
