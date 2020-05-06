@@ -23,7 +23,7 @@ type SessionData struct {
 
 	// Plugins:
 	Blacklist   *plugs.Blacklist
-	clear       plugs.Eraser
+	Clear       plugs.Eraser
 	crypto      *plugs.Crypto
 	gifRequest  *plugs.GifRequest
 	memeRequest *plugs.MemeRequest
@@ -50,7 +50,7 @@ func NewSessionData(s *dg.Session) *SessionData {
 	// Commands that require the session for execution
 	sd.XP = xp.NewXpStore(sd.Mutex, sd.session)
 	sd.Roles = roles.NewRoleStorage(sd.session, sd.XP)
-	sd.clear = plugs.NewEraser(sd.session)
+	sd.Clear = plugs.NewEraser(sd.session)
 	sd.Blacklist = plugs.NewBlacklist(sd.session)
 	sd.Rules = plugs.NewAgreement(sd.session)
 

@@ -42,4 +42,10 @@ func SavedData(sd *controller.SessionData) {
 			log.Fatalf("error loading Chat Permission file: %s", err)
 		}
 	}
+	// Load saved data used to athorize the clear comandinto the struct created by NewSessionData
+	if _, err := os.Stat(plugins.AuthClearPath); err == nil {
+		if err := sd.Clear.LoadAuthList(plugins.AuthClearPath); err != nil {
+			log.Fatalf("error loading Chat Permission file: %s", err)
+		}
+	}
 }

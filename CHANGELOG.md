@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Environment variable string names as a constant to plugins.go
 - "help" as an alias to the "man" command
 - Test for roles lar command
+- constant for using regexp on  a role ID
+- Authorized roles check before executing `clear <username>`
 
 ### Changed
 - BannedWords error messages

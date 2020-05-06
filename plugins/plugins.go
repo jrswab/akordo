@@ -10,6 +10,7 @@ import (
 // CommandDelay is the time (in seconds) to restrict command spam. Exported for unit tests.
 const CommandDelay = 90
 const botDelay = CommandDelay * time.Second
+const atRoleID string = `(?m)^<@&\d+>$`
 
 // Environment variables for the plugins package.
 const botOwner = "BOT_OWNER"

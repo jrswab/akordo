@@ -1,7 +1,9 @@
 package plugins
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -9,29 +11,45 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
+// AuthClearPath is the path to the json that stores the authorized roles that can  run `clear <username>`
+const AuthClearPath string = "data/authorizedToClear.json"
+
 // Eraser is the interface for interacting with the clear package.
 type Eraser interface {
 	ClearHandler(request []string, msg *dg.MessageCreate) error
+	LoadAuthList(file string) error
 }
 
 type clear struct {
-	dgs *dg.Session
+	dgs   *dg.Session
+	Authd *authorizedRoles `json:"authorizedRoles"`
+}
+
+type authorizedRoles struct {
+	roleID map[string]bool
 }
 
 // NewEraser creates a new clear struct for using the clear methods
 func NewEraser(s *dg.Session) Eraser {
-	return &clear{dgs: s}
+	return &clear{dgs: s,
+		Authd: &authorizedRoles{
+			roleID: make(map[string]bool),
+		},
+	}
 }
 
 // ClearHandler controls what method is triggered based on the user's command.
 func (c *clear) ClearHandler(request []string, msg *dg.MessageCreate) error {
 	var err error
 	var userID string
-	switch len(request) {
-	case 1:
+	if len(request) < 2 {
 		botID, _ := os.LookupEnv("BOT_ID")
 		err = c.clearMSGs(botID, msg)
-	case 2:
+	}
+	switch request[1] {
+	case "set":
+		return c.setAuthorized(request[2], msg)
+	default:
 		userID, err = c.findUserID(request[1], msg)
 		err = c.clearMSGs(userID, msg)
 	}
@@ -40,6 +58,38 @@ func (c *clear) ClearHandler(request []string, msg *dg.MessageCreate) error {
 		return fmt.Errorf("ClearHandler failed: %s", err)
 	}
 
+	return nil
+}
+
+func (c *clear) setAuthorized(roleID string, msg *dg.MessageCreate) error {
+	// Look up the bot owner's discord ID
+	ownerID, found := os.LookupEnv(botOwner)
+	if !found {
+		return fmt.Errorf("clear setAuthorized() failed: %s environment variable not found", botOwner)
+	}
+
+	// Make sure the bot owner is executing the command
+	if msg.Author.ID != ownerID {
+		return nil
+	}
+
+	// Make sure the string passed is the role ID
+	var re = regexp.MustCompile(atRoleID)
+	match := re.MatchString(roleID)
+	if !match {
+		return fmt.Errorf("Authorized role must be a role and formatted as: `@mod`")
+	}
+
+	splitID := strings.Split(roleID, "&")
+	id := strings.TrimSuffix(splitID[1], ">")
+
+	c.Authd.roleID[id] = true
+
+	// Save the updates
+	err := c.saveAuthList(AuthClearPath)
+	if err != nil {
+		return fmt.Errorf("error saving role to authorized list: %s", err)
+	}
 	return nil
 }
 
@@ -115,4 +165,32 @@ func (c *clear) findUserID(userName string, msg *dg.MessageCreate) (string, erro
 	}
 
 	return id, nil
+}
+
+func (c *clear) saveAuthList(filePath string) error {
+	json, err := json.MarshalIndent(c.Authd, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	// Write to data to a file
+	err = ioutil.WriteFile(filePath, json, 0600)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// LoadAuthList loads the saved roles allowed to execute `clear <username>` from the json file
+func (c *clear) LoadAuthList(file string) error {
+	savedRoles, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(savedRoles, &c.Authd.roleID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
