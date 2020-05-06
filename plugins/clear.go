@@ -43,10 +43,12 @@ func NewEraser(s AkSession) Eraser {
 func (c *clear) ClearHandler(request []string, msg *dg.MessageCreate) error {
 	var err error
 	var userID string
+
 	if len(request) < 2 {
 		botID, _ := os.LookupEnv("BOT_ID")
 		err = c.clearMSGs(botID, msg)
 	}
+
 	switch request[1] {
 	case "set":
 		return c.setAuthorized(request[2], msg)
