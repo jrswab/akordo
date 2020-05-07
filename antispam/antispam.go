@@ -57,10 +57,15 @@ func (s *SpamTracker) Handler(request []string, msg *dg.MessageCreate) (string, 
 
 // CheckForSpam is used to check  if the last `n` messages are the same as the current messag sent by the user.
 func (s *SpamTracker) CheckForSpam(msg *dg.MessageCreate) (bool, error) {
+	// If max is zero don't checking
+	if s.max == 0 {
+		return false, nil
+	}
+
 	// Add the newest message before checking for spam
-	err := s.addMsg(msg)
-	if err != nil {
-		return false, fmt.Errorf("addMsg() failed: %s", err)
+	isNewMsg := s.addMsg(msg)
+	if isNewMsg {
+		return false, nil
 	}
 
 	// Look over the last `n` messages to determine if the user is spamming the same message
@@ -76,12 +81,12 @@ func (s *SpamTracker) CheckForSpam(msg *dg.MessageCreate) (bool, error) {
 	return false, nil
 }
 
-func (s *SpamTracker) addMsg(msg *dg.MessageCreate) error {
+func (s *SpamTracker) addMsg(msg *dg.MessageCreate) bool {
 	// Check if the user ID is included in the map; if not create it with the current message
 	_, found := s.messages[msg.Author.ID]
 	if !found {
 		s.messages[msg.Author.ID] = []string{msg.Content}
-		return nil
+		return true
 	}
 
 	// if the messages to check is at the max, "shift" messages to remove oldest and add newest
@@ -98,7 +103,7 @@ func (s *SpamTracker) addMsg(msg *dg.MessageCreate) error {
 	// Append the most recent message
 	s.messages[msg.Author.ID] = append(s.messages[msg.Author.ID], msg.Content)
 
-	return nil
+	return false
 }
 
 // setMax sets the maximum number of repeated messages before the user is kicked from the chat.

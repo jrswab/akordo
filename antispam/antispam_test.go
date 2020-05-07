@@ -196,6 +196,43 @@ func TestSpamTracker_CheckForSpam(t *testing.T) {
 			want:    false,
 			wantErr: false,
 		},
+		{
+			name: "Max is zero; consider all 'not spam'",
+			fields: fields{
+				messages: mockSpam,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						Content: "No Spam!",
+						Author: &dg.User{
+							ID: "22222",
+						},
+					},
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "New user without any message data",
+			fields: fields{
+				max:      5,
+				messages: mockSpam,
+			},
+			args: args{
+				msg: &dg.MessageCreate{
+					&dg.Message{
+						Content: "I'm new don't kick me bro!",
+						Author: &dg.User{
+							ID: "33333",
+						},
+					},
+				},
+			},
+			want:    false,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
