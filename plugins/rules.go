@@ -11,9 +11,6 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-// ChatPermissionRole is the path to the banned words json file
-const ChatPermissionRole string = "data/ruleRole.json"
-
 // Agreement contains the data needed to save and execute the base role
 type Agreement struct {
 	session  AkSession

@@ -11,9 +11,6 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-// AuthClearPath is the path to the json that stores the authorized roles that can  run `clear <username>`
-const AuthClearPath string = "data/authorizedToClear.json"
-
 // Eraser is the interface for interacting with the clear package.
 type Eraser interface {
 	ClearHandler(request []string, msg *dg.MessageCreate) error

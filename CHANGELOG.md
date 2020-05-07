@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - gitlab-ci to use the Golang docker image
-- gif output message for clarity.
+- Location of plugin constants to plugins.go
+- gif comand output message
 
 ## v 0.12.0
 ### Added
