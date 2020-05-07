@@ -28,7 +28,7 @@ func NewSpamTracker() *SpamTracker {
 
 //Handler handles the execution of the antispam methods
 func (s *SpamTracker) Handler(request []string, msg *dg.MessageCreate) (string, error) {
-	if len(request) < 1 {
+	if len(request) < 2 {
 		return "Usage: <prefix>antispam set [number]", nil
 	}
 
@@ -65,7 +65,7 @@ func (s *SpamTracker) CheckForSpam(msg *dg.MessageCreate) (bool, error) {
 
 	// Look over the last `n` messages to determine if the user is spamming the same message
 	var count int
-	for i := (s.max - 1); i > 0; i-- {
+	for i := (s.max - 1); i >= 0; i-- {
 		if msg.Content == s.messages[msg.Author.ID][i] {
 			count++
 		}
