@@ -11,9 +11,6 @@ import (
 	dg "github.com/bwmarrin/discordgo"
 )
 
-// BannedWordsPath is the path to the banned words json file
-const BannedWordsPath string = "data/bannedWords.json"
-
 // Blacklist contains the data needed to execute the method functionality
 type Blacklist struct {
 	session AkSession

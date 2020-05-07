@@ -10,10 +10,20 @@ import (
 // CommandDelay is the time (in seconds) to restrict command spam. Exported for unit tests.
 const CommandDelay = 90
 const botDelay = CommandDelay * time.Second
-const atRoleID string = `(?m)^<@&\d+>$`
+
+// ChatPermissionRole is the path to the banned words json file
+const ChatPermissionRole string = "data/ruleRole.json"
+
+// AuthClearPath is the path to the json that stores the authorized roles that can  run `clear <username>`
+const AuthClearPath string = "data/authorizedToClear.json"
+
+// BannedWordsPath is the path to the banned words json file
+const BannedWordsPath string = "data/bannedWords.json"
 
 // Environment variables for the plugins package.
 const botOwner = "BOT_OWNER"
+
+const atRoleID string = `(?m)^<@&\d+>$`
 
 // AkSession allows for tests to mock the discordgo session.Channel() method call
 type AkSession interface {
