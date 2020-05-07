@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests for plugins/clear.go
 - Tests for plugins/rules.go
 
+### Changed
+- gitlab-ci to use the Golang docker image
+
 ## v 0.12.0
 ### Added
 - Gif request details to return with the URL

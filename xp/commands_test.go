@@ -22,6 +22,12 @@ func TestSystem_Execute(t *testing.T) {
 			Username: "jrswab",
 		},
 	}
+	mockMemb3 := &dg.Member{
+		User: &dg.User{
+			ID:       "3",
+			Username: "User3",
+		},
+	}
 	mockMembSlice := []*dg.Member{}
 	// create a []*dg.Member with 1000 "members"
 	for i := 0; i < 999; i++ {
@@ -52,6 +58,7 @@ func TestSystem_Execute(t *testing.T) {
 	mockSess.On("GuildMember", "1111", "165899680323076097").Return(mockMemb, nil).Once()
 	mockSess.On("GuildMembers", "1111", "", 1000).Return(mockMembSlice, nil)
 	mockSess.On("GuildMembers", "1111", "998", 1000).Return(mockMembSlice2, nil)
+	mockSess.On("GuildMember", "1111", "3").Return(mockMemb3, nil).Once()
 
 	type fields struct {
 		Data    *Data
@@ -143,14 +150,10 @@ func TestSystem_Execute(t *testing.T) {
 				msg: &dg.MessageCreate{
 					&dg.Message{
 						GuildID: "1111",
-						Author: &dg.User{
-							ID:       "165899680323076097",
-							Username: "jrswab",
-						},
 					},
 				},
 			},
-			want:    &dg.MessageEmbed{Description: fmt.Sprintf("%s has a total of %.2f xp", "jrswab", 5.56)},
+			want:    &dg.MessageEmbed{Description: "User not found... Did you use `@`?"},
 			wantErr: false,
 		},
 		{
@@ -162,7 +165,7 @@ func TestSystem_Execute(t *testing.T) {
 				dgs:     mockSess,
 			},
 			args: args{
-				req: []string{"=xp", "User3"},
+				req: []string{"=xp", "<@!3>"},
 				msg: &dg.MessageCreate{
 					&dg.Message{
 						GuildID: "1111",
