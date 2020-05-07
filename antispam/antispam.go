@@ -27,31 +27,32 @@ func NewSpamTracker() *SpamTracker {
 }
 
 //Handler handles the execution of the antispam methods
-func (s *SpamTracker) Handler(request []string, msg *dg.MessageCreate) (bool, error) {
+func (s *SpamTracker) Handler(request []string, msg *dg.MessageCreate) (string, error) {
 	if len(request) < 1 {
-		return false, nil
+		return "Usage: <prefix>antispam set [number]", nil
 	}
 
-	if request[1] == "set" {
-		// Look up the bot owner's discord ID
-		ownerID, found := os.LookupEnv("BOT_OWNER")
-		if !found {
-			return false, fmt.Errorf("spam set() failed: environment variable not found")
-		}
-
-		// Make sure the bot owner is executing the command
-		if msg.Author.ID != ownerID {
-			return false, nil
-		}
-
-		max, err := strconv.Atoi(request[2])
-		if err != nil {
-			return false, fmt.Errorf("converting string to integer failed: %s", err)
-		}
-		s.setMax(max)
+	if request[1] != "set" {
+		return "Usage: <prefix>antispam set [number]", nil
+	}
+	// Look up the bot owner's discord ID
+	ownerID, found := os.LookupEnv("BOT_OWNER")
+	if !found {
+		return "", fmt.Errorf("spam set() failed: environment variable not found")
 	}
 
-	return false, nil
+	// Make sure the bot owner is executing the command
+	if msg.Author.ID != ownerID {
+		return "", nil
+	}
+
+	max, err := strconv.Atoi(request[2])
+	if err != nil {
+		return "", fmt.Errorf("converting string to integer failed: %s", err)
+	}
+	s.setMax(max)
+
+	return "Max repeated messages for kick set.", nil
 }
 
 // CheckForSpam is used to check  if the last `n` messages are the same as the current messag sent by the user.
