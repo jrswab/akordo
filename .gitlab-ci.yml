@@ -26,7 +26,17 @@ format:
     #- go vet $(go list ./... | grep -v /vendor/)
     - go test -race $(go list ./... | grep -v /vendor/)
 
-Production:
+mergeToMaster:
+  stage: test
+  only:
+    - master
+  script:
+    - go fmt $(go list ./... | grep -v /vendor/)
+    # Ignoring go vet since imported package forces the use of unkeyed fields in some structs
+    #- go vet $(go list ./... | grep -v /vendor/)
+    - go test -race $(go list ./... | grep -v /vendor/)
+
+production:
   stage: deploy
   only:
     - tags
