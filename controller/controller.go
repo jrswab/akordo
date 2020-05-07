@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	dg "github.com/bwmarrin/discordgo"
+	"gitlab.com/technonauts/akordo/antispam"
 	plugs "gitlab.com/technonauts/akordo/plugins"
 	"gitlab.com/technonauts/akordo/roles"
 	"gitlab.com/technonauts/akordo/xp"
@@ -15,11 +16,12 @@ const version string = "v0.11.0"
 
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
-	session *dg.Session
-	Mutex   *sync.Mutex
-	prefix  string
-	XP      *xp.System
-	Roles   roles.Assigner
+	session  *dg.Session
+	Mutex    *sync.Mutex
+	prefix   string
+	XP       *xp.System
+	Roles    roles.Assigner
+	antiSpam *antispam.SpamTracker
 
 	// Plugins:
 	Blacklist   *plugs.Blacklist
@@ -35,9 +37,10 @@ type SessionData struct {
 // NewSessionData creates a SessionData
 func NewSessionData(s *dg.Session) *SessionData {
 	sd := &SessionData{
-		session: s,
-		Mutex:   &sync.Mutex{},
-		prefix:  `=`,
+		session:  s,
+		Mutex:    &sync.Mutex{},
+		prefix:   `=`,
+		antiSpam: antispam.NewSpamTracker(),
 
 		// Plugins:
 		crypto:      plugs.NewCrypto(),
