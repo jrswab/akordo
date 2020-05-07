@@ -33,8 +33,6 @@ production:
   stage: deploy
   rules:
     - if: $CI_COMMIT_TAG  # Execute jobs when a new tag is pushed
-  only:
-    - tags
   script:
     - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/akordo
     - ./$CI_PROJECT_DIR/akordo
