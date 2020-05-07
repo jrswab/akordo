@@ -75,6 +75,9 @@ func (c *controller) cmdHandler() {
 	req := strings.Split(msg.Content, " ")
 
 	switch req[0] {
+	case sd.prefix + "antispam":
+		c.response, err = sd.AntiSpam.Handler(req, msg)
+
 	case sd.prefix + "blacklist":
 		c.response, err = sd.Blacklist.Handler(req, msg)
 

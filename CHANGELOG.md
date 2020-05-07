@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Methods to AkSession interface
 - Tests for plugins/clear.go
 - Tests for plugins/rules.go
+- Antispam feature to kick users after "n" repeated messages
 
 ### Changed
 - gitlab-ci to use the Golang docker image
 - Location of plugin constants to plugins.go
+- gif comand output message
 
 ## v 0.12.0
 ### Added

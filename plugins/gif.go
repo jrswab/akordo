@@ -66,7 +66,7 @@ func (g *GifRequest) Gif(req []string, s *dg.Session, msg *dg.MessageCreate) (st
 		return "", fmt.Errorf("failed to request gif data: %s", err)
 	}
 
-	returnMsg := fmt.Sprintf("Here's what I found for %s ;) %s", req[1], sampleURL)
+	returnMsg := fmt.Sprintf("Here's what I found for *%s* :wink: %s", req[1], sampleURL)
 	return returnMsg, nil
 }
 

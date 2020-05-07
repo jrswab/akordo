@@ -119,7 +119,7 @@ func TestGifRequest_Gif(t *testing.T) {
 					},
 				},
 			},
-			want:    "Here's what I found for test ;) somef.ake/url/withImage.gif",
+			want:    "Here's what I found for *test* :wink: somef.ake/url/withImage.gif",
 			wantErr: false,
 		},
 	}

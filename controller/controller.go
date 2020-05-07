@@ -6,20 +6,22 @@ import (
 	"sync"
 
 	dg "github.com/bwmarrin/discordgo"
+	"gitlab.com/technonauts/akordo/antispam"
 	plugs "gitlab.com/technonauts/akordo/plugins"
 	"gitlab.com/technonauts/akordo/roles"
 	"gitlab.com/technonauts/akordo/xp"
 )
 
-const version string = "v0.11.0"
+const version string = "v1.0.0"
 
 // SessionData holds the data needed to complete the requested transactions
 type SessionData struct {
-	session *dg.Session
-	Mutex   *sync.Mutex
-	prefix  string
-	XP      *xp.System
-	Roles   roles.Assigner
+	session  *dg.Session
+	Mutex    *sync.Mutex
+	prefix   string
+	XP       *xp.System
+	Roles    roles.Assigner
+	AntiSpam *antispam.SpamTracker
 
 	// Plugins:
 	Blacklist   *plugs.Blacklist
@@ -35,9 +37,10 @@ type SessionData struct {
 // NewSessionData creates a SessionData
 func NewSessionData(s *dg.Session) *SessionData {
 	sd := &SessionData{
-		session: s,
-		Mutex:   &sync.Mutex{},
-		prefix:  `=`,
+		session:  s,
+		Mutex:    &sync.Mutex{},
+		prefix:   `=`,
+		AntiSpam: antispam.NewSpamTracker(),
 
 		// Plugins:
 		crypto:      plugs.NewCrypto(),
@@ -87,15 +90,35 @@ func (sd *SessionData) NewMessage(s *dg.Session, msg *dg.MessageCreate) {
 func (c *controller) checkMessage() {
 	// If the message is not a command, award the user XP and ignore the rest of the function
 	isCMD := c.determineIfCmd()
-	if !isCMD {
-		c.awardXP()
+	if isCMD {
+		// Execute user command:
+		c.cmdHandler()
+
+		// Remove command after the bot replies
+		c.deleteMessage()
+		return
+	}
+
+	// Check for spamming
+	isSpam, err := c.sess.AntiSpam.CheckForSpam(c.msg)
+	if err != nil {
+		log.Printf("CheckForSpam failed: %s\n", err)
+	}
+
+	if isSpam {
+		// Kick the offender
+		reason := "Kicked for spamming the chat."
+		err := c.sess.session.GuildMemberDeleteWithReason(c.msg.GuildID, c.msg.Author.ID, reason)
+		if err != nil {
+			log.Printf("isSpam: GuildMemberDeleteWithReason() failed: %s\n", err)
+		}
 		return
 	}
 
 	// Check for banned words in the message.
 	foundBannedWord, err := c.checkWords()
 	if err != nil {
-		log.Printf("checkWords failed: %s", err)
+		log.Printf("checkWords failed: %s\n", err)
 	}
 
 	// Stop execution if a banned word is found
@@ -105,11 +128,9 @@ func (c *controller) checkMessage() {
 		return
 	}
 
-	// Execute user command:
-	c.cmdHandler()
-
-	// Remove command after the bot replies
-	c.deleteMessage()
+	// Award xp if all checks pass
+	c.awardXP()
+	return
 }
 
 func (c *controller) deleteMessage() error {
@@ -117,7 +138,7 @@ func (c *controller) deleteMessage() error {
 
 	err := sd.session.ChannelMessageDelete(c.msg.ChannelID, c.msg.ID)
 	if err != nil {
-		log.Printf("failed to delete message after bot reply: %s", err)
+		log.Printf("failed to delete message after bot reply: %s\n", err)
 	}
 	return nil
 }
@@ -139,12 +160,12 @@ func (c *controller) reply() {
 	case "embed":
 		botMsg, err = s.ChannelMessageSendEmbed(c.msg.ChannelID, c.emb)
 		if err != nil {
-			log.Printf("reply ChannelMessageSendEmbed failed: %s", err)
+			log.Printf("reply ChannelMessageSendEmbed failed: %s\n", err)
 		}
 	case "chan":
 		botMsg, err = s.ChannelMessageSend(c.msg.ChannelID, c.response)
 		if err != nil {
-			log.Printf("reply ChannelMessageSend failed: %s", err)
+			log.Printf("reply ChannelMessageSend failed: %s\n", err)
 		}
 	}
 
@@ -152,7 +173,7 @@ func (c *controller) reply() {
 	if c.delete {
 		err = sd.session.ChannelMessageDelete(botMsg.ChannelID, botMsg.ID)
 		if err != nil {
-			log.Printf("failed to delete message after bot reply: %s", err)
+			log.Printf("failed to delete message after bot reply: %s\n", err)
 		}
 	}
 }
@@ -162,14 +183,14 @@ func (c *controller) sendAsDM() {
 	s := sd.session
 	dm, err := s.UserChannelCreate(c.msg.Author.ID)
 	if err != nil {
-		log.Printf("s.UserChannelCreate failed to create DM for %s: %s",
+		log.Printf("s.UserChannelCreate failed to create DM for %s: %s\n",
 			c.msg.Author.Username, err)
 		return
 	}
 
 	_, err = s.ChannelMessageSend(dm.ID, c.response)
 	if err != nil {
-		log.Printf("session.ChannelMessageSend failed to send DM: %s", err)
+		log.Printf("session.ChannelMessageSend failed to send DM: %s\n", err)
 	}
 	return
 }
