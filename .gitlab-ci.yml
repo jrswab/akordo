@@ -34,7 +34,7 @@ compile:
         - building
         - testing
     rules:
-        - if: $CI_COMMIT_BRANCH == 'master' # Execute jobs when a new commit is pushed to master branch
+        - if: $CI_COMMIT_TAG  # Execute jobs when a new tag is pushed
     script:
         # setup environment
         - mkdir -p /root/akordo/
@@ -43,7 +43,7 @@ compile:
         - cd $GOPATH/src/$REPO_NAME
         # start build
         - go build -race -ldflags "-extldflags '-static'" -o $CI_PROJECT_DIR/akordo
-        - cp $CI_PROJECT_DIR/akordo /root/akordo/versions/akordo
+        - cp $CI_PROJECT_DIR/akordo /root/akordo/versions/akordo-$CI_COMMIT_TAG
 
 run:
     stage: deploy
@@ -54,15 +54,13 @@ run:
         - if: $CI_COMMIT_TAG  # Execute jobs when a new tag is pushed
     script:
         # If akordo is running then request a graceful shutdown
-        - if [ $(pgrep akordo) ]; then kill -15 $(pgrep akordo); fi
+        - if [ "$(pgrep akordo)" ]; then kill -15 "$(pgrep akordo)"; fi
         - cd /home/techadmin/akordo/
         # When a file is opened and locked by a process, any other process is not allowed to write into it,
         # and in particular to completely overwrite it. But anyone (with the necessary rights) can rename it.
         - mv akordo akordo.prev
-        # remane version with commit tag
-        - mv /home/techadmin/akordo/versions/akordo /home/techadmin/akordo/versions/akordo-$CI_COMMIT_TAG
         # copy current version to directory with base name
         - cp /home/techadmin/akordo/versions/akordo-$CI_COMMIT_TAG /home/techadmin/akordo/akordo
         - source envars
         - ./akordo &
-        - if [ $(pgrep akordo) ]; then exit 0; else exit 1; fi
+        - if [ "$(pgrep akordo)" ]; then exit 0; else exit 1; fi
