@@ -8,6 +8,7 @@ stages:
 
 unit-tests:
     stage: test
+    image: golang:latest
     tags:
         - building
         - testing
@@ -28,6 +29,7 @@ unit-tests:
 
 compile:
     stage: build
+    image: golang:latest
     tags:
         - building
         - testing
@@ -62,3 +64,4 @@ run:
         - cp /home/techadmin/akordo/versions/akordo-$CI_COMMIT_TAG /home/techadmin/akordo/akordo
         - source envars
         - ./akordo &
+        - exit 0
