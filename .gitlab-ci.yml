@@ -51,8 +51,8 @@ run:
     rules:
         - if: $CI_COMMIT_TAG  # Execute jobs when a new tag is pushed
     script:
-        - cd /home/techadmin/akordo/
         - kill $(pgrep akordo) # If akordo is not running this stage will fail
+        - cd /home/techadmin/akordo/
         - mv /home/techadmin/akordo/versions/akordo /home/techadmin/akordo/versions/akordo-$CI_COMMIT_TAG
         - cp /home/techadmin/akordo/versions/akordo-$CI_COMMIT_TAG /home/techadmin/akordo/akordo
         - source envars
