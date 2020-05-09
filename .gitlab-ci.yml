@@ -55,9 +55,10 @@ run:
     script:
         # If akordo is running then request a graceful shutdown
         - if [ "$(pgrep akordo)" ]; then kill -15 "$(pgrep akordo)"; fi
-        - cd /home/techadmin/akordo/
+        # fail pipeline if `cd` fails
+        - cd /home/techadmin/akordo/ || exit 1
         # When a file is opened and locked by a process, any other process is not allowed to write into it,
-        # and in particular to completely overwrite it. But anyone (with the necessary rights) can rename it.
+        # and in particular to completely overwrite it. Renaming avoids this problem.
         - mv akordo akordo.prev
         # copy current version to directory with base name
         - cp /home/techadmin/akordo/versions/akordo-$CI_COMMIT_TAG /home/techadmin/akordo/akordo
