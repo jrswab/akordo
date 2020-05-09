@@ -9,7 +9,7 @@ stages:
 unit-tests:
     stage: test
     image: golang:latest
-    tags:
+    tags: # This stage will only use runners with both of the following tags
         - building
         - testing
     rules:
@@ -30,7 +30,7 @@ unit-tests:
 compile:
     stage: build
     image: golang:latest
-    tags:
+    tags: # This stage will only use runners with both of the following tags
         - building
         - testing
     rules:
@@ -47,24 +47,20 @@ compile:
 
 run:
     stage: deploy
-    tags:
+    tags: # This stage will only use runners with both of the following tags
         - deploy
         - prod
     rules:
         - if: $CI_COMMIT_TAG  # Execute jobs when a new tag is pushed
     script:
+        # stop the systemd service
         - systemctl stop akordo.service
-        # If akordo is running then request a graceful shutdown
-        #- if [ "$(pgrep akordo)" ]; then kill -15 "$(pgrep akordo)"; fi
-        # fail pipeline if `cd` fails
-        #- cd /home/techadmin/akordo/ || exit 1
+        # fail the pipeline if `cd` fails
         - cd /usr/local/bin/akordo/ || exit 1
         # When a file is opened and locked by a process, any other process is not allowed to write into it,
         # and in particular to completely overwrite it. Renaming avoids this problem.
         - mv akordo akordo.prev
         # copy current version to directory with base name
         - cp /home/techadmin/akordo/versions/akordo-$CI_COMMIT_TAG /usr/local/bin/akordo/akordo
-        #- source envars
-        #- ./akordo &
-        #- if [ "$(pgrep akordo)" ]; then exit 0; else exit 1; fi
+        # restart systemd service
         - systemctl start akordo.service
