@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -52,7 +51,7 @@ func main() {
 	}
 
 	// Wait here until until told to terminate. (ie: ctrl+c)
-	fmt.Println("Bot is now running.\n\nPress CTRL-C to exit.")
+	log.Println("Bot is now running.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
